@@ -1,0 +1,9 @@
+{
+    "metadata_format_version": "1",
+    "name": "SDBanana",
+    "version": "0.1.0",
+    "author": "SDBanana Team",
+    "min_designer_version": "13.0.0",
+    "platform": "any",
+    "description": "AI image generation plugin using Nano Banana API for Substance 3D Designer"
+}
