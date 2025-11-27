@@ -3,26 +3,81 @@
 ##########################################################################
 
 from PySide6 import QtWidgets, QtCore
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
-from PySide6.QtWidgets import QLabel, QTextEdit, QPushButton, QComboBox, QLineEdit
-
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, 
+                             QLabel, QTextEdit, QPushButton, QComboBox, QLineEdit,
+                             QCheckBox, QMessageBox, QInputDialog)
+from .providers import ProviderManager
+from .presets import PresetManager
+from .generator import ImageGenerator
+from .importer import ImageImporter
+import os
 
 class SDBananaPanel(QWidget):
     """
-    SDBanana 主面板
-    包含两个 Tab: 图像生成和设置
+    SDBanana Main Panel
+    Contains two tabs: Generate and Settings
     """
     
     def __init__(self, parent=None):
         super(SDBananaPanel, self).__init__(parent)
+        self.provider_manager = ProviderManager()
+        self.preset_manager = PresetManager()
+        self.image_generator = ImageGenerator(self.provider_manager)
+        self.importer = ImageImporter()
+        
+        self.current_settings = {
+            "debug_mode": False
+        }
         self.init_ui()
+
+    # ... (skipping unchanged methods) ...
+
+    def on_generate_clicked(self):
+        prompt = self.prompt_input.toPlainText()
+        if not prompt:
+            QMessageBox.warning(self, "Warning", "Please enter a prompt.")
+            return
+            
+        provider_name = self.provider_combo.currentText()
+        if not provider_name:
+            QMessageBox.warning(self, "Warning", "Please select a provider.")
+            return
+
+        self.status_label.setText("Generating image...")
+        self.generate_button.setEnabled(False)
+        QtWidgets.QApplication.processEvents()
+        
+        success, result = self.image_generator.generate_image(
+            prompt, 
+            provider_name,
+            resolution=self.res_combo.currentText(),
+            search_web=self.chk_search.isChecked(),
+            debug_mode=self.current_settings["debug_mode"]
+        )
+        
+        self.generate_button.setEnabled(True)
+        self.status_label.setText("Ready")
+        
+        if success:
+            # Import to SD
+            import_success, import_msg = self.importer.import_image(result)
+            
+            msg = f"Image saved to:\n{result}\n\n"
+            if import_success:
+                msg += f"Import: {import_msg}"
+            else:
+                msg += f"Import Failed: {import_msg}"
+                
+            QMessageBox.information(self, "Success", msg)
+        else:
+            QMessageBox.critical(self, "Error", f"Generation failed:\n{result}")
     
     def init_ui(self):
-        """初始化 UI"""
-        # 创建主布局
+        """Initialize UI"""
+        # Main Layout
         main_layout = QVBoxLayout()
         
-        # 创建标题
+        # Title
         title_label = QLabel("🍌 SD Banana - AI Image Generation")
         title_label.setStyleSheet("""
             QLabel {
@@ -35,7 +90,7 @@ class SDBananaPanel(QWidget):
         """)
         main_layout.addWidget(title_label)
         
-        # 创建 Tab 控件
+        # Tabs
         self.tab_widget = QTabWidget()
         self.tab_widget.setStyleSheet("""
             QTabWidget::pane {
@@ -57,25 +112,76 @@ class SDBananaPanel(QWidget):
             }
         """)
         
-        # 创建 Tab1 - 图像生成
+        # Tab 1 - Generate
         tab1 = self.create_generation_tab()
         self.tab_widget.addTab(tab1, "Generate")
         
-        # 创建 Tab2 - 设置
+        # Tab 2 - Settings
         tab2 = self.create_settings_tab()
         self.tab_widget.addTab(tab2, "Settings")
         
         main_layout.addWidget(self.tab_widget)
         
         self.setLayout(main_layout)
-        self.setMinimumSize(400, 500)
+        self.setMinimumSize(450, 650)
     
     def create_generation_tab(self):
-        """创建图像生成 Tab"""
+        """Create Generation Tab"""
         tab = QWidget()
         layout = QVBoxLayout()
         
-        # Prompt 输入区域
+        # --- Presets Section ---
+        preset_group = QWidget()
+        preset_layout = QHBoxLayout(preset_group)
+        preset_layout.setContentsMargins(0, 0, 0, 0)
+        
+        preset_label = QLabel("Prompt Presets:")
+        preset_label.setStyleSheet("color: #cccccc; font-weight: bold;")
+        preset_layout.addWidget(preset_label)
+        
+        self.preset_combo = QComboBox()
+        self.preset_combo.setStyleSheet(self._get_combo_style())
+        self.preset_combo.currentIndexChanged.connect(self.on_preset_changed)
+        preset_layout.addWidget(self.preset_combo, 1)
+        
+        btn_style = """
+            QPushButton {
+                background-color: #444444;
+                color: #ffffff;
+                border: none;
+                border-radius: 3px;
+                padding: 5px 10px;
+            }
+            QPushButton:hover { background-color: #555555; }
+        """
+        
+        self.btn_add_preset = QPushButton("+")
+        self.btn_add_preset.setFixedWidth(30)
+        self.btn_add_preset.setStyleSheet(btn_style)
+        self.btn_add_preset.clicked.connect(self.on_add_preset)
+        preset_layout.addWidget(self.btn_add_preset)
+        
+        self.btn_save_preset = QPushButton("Save")
+        self.btn_save_preset.setFixedWidth(50)
+        self.btn_save_preset.setStyleSheet(btn_style)
+        self.btn_save_preset.clicked.connect(self.on_save_preset)
+        preset_layout.addWidget(self.btn_save_preset)
+        
+        self.btn_rename_preset = QPushButton("Rename")
+        self.btn_rename_preset.setFixedWidth(60)
+        self.btn_rename_preset.setStyleSheet(btn_style)
+        self.btn_rename_preset.clicked.connect(self.on_rename_preset)
+        preset_layout.addWidget(self.btn_rename_preset)
+        
+        self.btn_del_preset = QPushButton("Del")
+        self.btn_del_preset.setFixedWidth(40)
+        self.btn_del_preset.setStyleSheet(btn_style)
+        self.btn_del_preset.clicked.connect(self.on_delete_preset)
+        preset_layout.addWidget(self.btn_del_preset)
+        
+        layout.addWidget(preset_group)
+        
+        # Prompt Input
         prompt_label = QLabel("Prompt:")
         prompt_label.setStyleSheet("color: #cccccc; font-weight: bold; padding: 5px;")
         layout.addWidget(prompt_label)
@@ -95,34 +201,11 @@ class SDBananaPanel(QWidget):
         """)
         layout.addWidget(self.prompt_input)
         
-        # 占位：图像尺寸选择
-        size_label = QLabel("Image Size:")
-        size_label.setStyleSheet("color: #cccccc; font-weight: bold; padding: 5px; padding-top: 15px;")
-        layout.addWidget(size_label)
+        # Generate Button Area
+        gen_group = QWidget()
+        gen_layout = QHBoxLayout(gen_group)
+        gen_layout.setContentsMargins(0, 10, 0, 10)
         
-        self.size_combo = QComboBox()
-        self.size_combo.addItems(["1024x1024", "1024x2048", "2048x2048", "4096x4096"])
-        self.size_combo.setStyleSheet("""
-            QComboBox {
-                background-color: #1e1e1e;
-                color: #ffffff;
-                border: 1px solid #444444;
-                border-radius: 4px;
-                padding: 5px;
-            }
-            QComboBox::drop-down {
-                border: none;
-            }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid #cccccc;
-            }
-        """)
-        layout.addWidget(self.size_combo)
-        
-        # Generate 按钮
         self.generate_button = QPushButton("🎨 Generate Image")
         self.generate_button.setMinimumHeight(40)
         self.generate_button.setStyleSheet("""
@@ -147,12 +230,59 @@ class SDBananaPanel(QWidget):
             }
         """)
         self.generate_button.clicked.connect(self.on_generate_clicked)
-        layout.addWidget(self.generate_button)
+        gen_layout.addWidget(self.generate_button, 2)
         
-        # 添加弹性空间
+        self.regenerate_button = QPushButton("Regenerate")
+        self.regenerate_button.setMinimumHeight(40)
+        self.regenerate_button.setStyleSheet(btn_style)
+        self.regenerate_button.clicked.connect(self.on_regenerate_clicked)
+        gen_layout.addWidget(self.regenerate_button, 1)
+        
+        self.load_prompt_button = QPushButton("Load Last Prompt")
+        self.load_prompt_button.setMinimumHeight(40)
+        self.load_prompt_button.setStyleSheet(btn_style)
+        self.load_prompt_button.clicked.connect(self.on_load_prompt_clicked)
+        gen_layout.addWidget(self.load_prompt_button, 1)
+        
+        layout.addWidget(gen_group)
+        
+        # Resolution
+        res_group = QWidget()
+        res_layout = QHBoxLayout(res_group)
+        res_layout.setContentsMargins(0, 0, 0, 0)
+        
+        res_label = QLabel("Output Resolution:")
+        res_label.setStyleSheet("color: #cccccc; font-weight: bold;")
+        res_layout.addWidget(res_label)
+        
+        self.res_combo = QComboBox()
+        self.res_combo.addItems(["1K", "2K", "4K"])
+        self.res_combo.setStyleSheet(self._get_combo_style())
+        res_layout.addWidget(self.res_combo)
+
+        # Search Web Toggle (Moved here)
+        self.chk_search = QCheckBox("Search Web")
+        self.chk_search.setStyleSheet("""
+            QCheckBox {
+                color: #cccccc;
+                padding: 5px;
+                margin-left: 10px;
+            }
+            QCheckBox::indicator {
+                width: 15px;
+                height: 15px;
+            }
+        """)
+        res_layout.addWidget(self.chk_search)
+
+        res_layout.addStretch()
+        
+        layout.addWidget(res_group)
+        
+        # Spacer
         layout.addStretch()
         
-        # 状态信息
+        # Status
         self.status_label = QLabel("Ready")
         self.status_label.setStyleSheet("""
             QLabel {
@@ -163,26 +293,127 @@ class SDBananaPanel(QWidget):
         """)
         layout.addWidget(self.status_label)
         
+        # Populate Presets
+        self.refresh_presets_ui()
+        
         tab.setLayout(layout)
         return tab
     
     def create_settings_tab(self):
-        """创建设置 Tab"""
+        """Create Settings Tab"""
         tab = QWidget()
         layout = QVBoxLayout()
         
-        # API Provider 设置
-        provider_label = QLabel("API Provider:")
-        provider_label.setStyleSheet("color: #cccccc; font-weight: bold; padding: 5px;")
-        layout.addWidget(provider_label)
+        # --- Provider Section ---
+        provider_group = QWidget()
+        provider_layout = QHBoxLayout(provider_group)
+        provider_layout.setContentsMargins(0, 0, 0, 0)
+        
+        provider_label = QLabel("Provider:")
+        provider_label.setStyleSheet("color: #cccccc; font-weight: bold;")
+        provider_layout.addWidget(provider_label)
         
         self.provider_combo = QComboBox()
-        self.provider_combo.addItems([
-            "GPTGod NanoBanana Pro",
-            "Yunwu Gemini",
-            "Custom"
-        ])
-        self.provider_combo.setStyleSheet("""
+        self.provider_combo.setStyleSheet(self._get_combo_style())
+        self.provider_combo.currentIndexChanged.connect(self.on_provider_changed)
+        provider_layout.addWidget(self.provider_combo, 1) # Stretch factor 1
+        
+        # Provider Actions
+        btn_style = """
+            QPushButton {
+                background-color: #444444;
+                color: #ffffff;
+                border: none;
+                border-radius: 3px;
+                padding: 5px 10px;
+            }
+            QPushButton:hover { background-color: #555555; }
+        """
+        
+        self.btn_add = QPushButton("+")
+        self.btn_add.setFixedWidth(30)
+        self.btn_add.setStyleSheet(btn_style)
+        self.btn_add.clicked.connect(self.on_add_provider)
+        provider_layout.addWidget(self.btn_add)
+        
+        self.btn_save = QPushButton("Save")
+        self.btn_save.setFixedWidth(50)
+        self.btn_save.setStyleSheet(btn_style)
+        self.btn_save.clicked.connect(self.on_save_provider)
+        provider_layout.addWidget(self.btn_save)
+        
+        self.btn_del = QPushButton("Del")
+        self.btn_del.setFixedWidth(40)
+        self.btn_del.setStyleSheet(btn_style)
+        self.btn_del.clicked.connect(self.on_delete_provider)
+        provider_layout.addWidget(self.btn_del)
+        
+        layout.addWidget(provider_group)
+        
+        # Test Connection Button (Separate row for better visibility)
+        self.btn_test = QPushButton("Test Connection")
+        self.btn_test.setStyleSheet(btn_style)
+        self.btn_test.clicked.connect(self.on_test_connection)
+        layout.addWidget(self.btn_test)
+        
+        # --- Fields ---
+        # API Key
+        key_label = QLabel("API Key:")
+        key_label.setStyleSheet("color: #cccccc; font-weight: bold; padding-top: 10px;")
+        layout.addWidget(key_label)
+        
+        self.key_input = QLineEdit()
+        self.key_input.setPlaceholderText("Enter your API key...")
+        self.key_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.key_input.setStyleSheet(self._get_input_style())
+        layout.addWidget(self.key_input)
+        
+        # Base URL
+        url_label = QLabel("Base URL:")
+        url_label.setStyleSheet("color: #cccccc; font-weight: bold; padding-top: 10px;")
+        layout.addWidget(url_label)
+        
+        self.url_input = QLineEdit()
+        self.url_input.setPlaceholderText("https://api.example.com/v1")
+        self.url_input.setStyleSheet(self._get_input_style())
+        layout.addWidget(self.url_input)
+        
+        # Model
+        model_label = QLabel("Model ID:")
+        model_label.setStyleSheet("color: #cccccc; font-weight: bold; padding-top: 10px;")
+        layout.addWidget(model_label)
+        
+        self.model_input = QLineEdit()
+        self.model_input.setPlaceholderText("gemini-3-pro-image-preview")
+        self.model_input.setStyleSheet(self._get_input_style())
+        layout.addWidget(self.model_input)
+        
+        # --- Debug ---
+        self.chk_debug = QCheckBox("Enable Debug Mode (Log prompts & keep temp images)")
+        self.chk_debug.setStyleSheet("""
+            QCheckBox {
+                color: #cccccc;
+                padding-top: 15px;
+            }
+            QCheckBox::indicator {
+                width: 15px;
+                height: 15px;
+            }
+        """)
+        self.chk_debug.stateChanged.connect(self.on_debug_changed)
+        layout.addWidget(self.chk_debug)
+        
+        # Spacer
+        layout.addStretch()
+        
+        # Populate Providers
+        self.refresh_providers_ui()
+        
+        tab.setLayout(layout)
+        return tab
+
+    def _get_combo_style(self):
+        return """
             QComboBox {
                 background-color: #1e1e1e;
                 color: #ffffff;
@@ -190,17 +421,17 @@ class SDBananaPanel(QWidget):
                 border-radius: 4px;
                 padding: 5px;
             }
-        """)
-        layout.addWidget(self.provider_combo)
-        
-        # API Base URL
-        url_label = QLabel("API Base URL:")
-        url_label.setStyleSheet("color: #cccccc; font-weight: bold; padding: 5px; padding-top: 15px;")
-        layout.addWidget(url_label)
-        
-        self.url_input = QLineEdit()
-        self.url_input.setPlaceholderText("https://api.example.com/v1")
-        self.url_input.setStyleSheet("""
+            QComboBox::drop-down { border: none; }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 5px solid #cccccc;
+            }
+        """
+
+    def _get_input_style(self):
+        return """
             QLineEdit {
                 background-color: #1e1e1e;
                 color: #ffffff;
@@ -208,82 +439,196 @@ class SDBananaPanel(QWidget):
                 border-radius: 4px;
                 padding: 8px;
             }
-        """)
-        layout.addWidget(self.url_input)
+        """
+
+    # --- Provider Event Handlers ---
+
+    def refresh_providers_ui(self):
+        """Reload provider list into combo box"""
+        current_text = self.provider_combo.currentText()
+        self.provider_combo.blockSignals(True)
+        self.provider_combo.clear()
+        names = self.provider_manager.get_all_names()
+        self.provider_combo.addItems(names)
         
-        # API Key
-        key_label = QLabel("API Key:")
-        key_label.setStyleSheet("color: #cccccc; font-weight: bold; padding: 5px; padding-top: 15px;")
-        layout.addWidget(key_label)
+        # Restore selection if possible
+        index = self.provider_combo.findText(current_text)
+        if index >= 0:
+            self.provider_combo.setCurrentIndex(index)
+        elif self.provider_combo.count() > 0:
+            self.provider_combo.setCurrentIndex(0)
+            
+        self.provider_combo.blockSignals(False)
+        self.on_provider_changed() # Update fields
+
+    def on_provider_changed(self):
+        """Update input fields when provider selection changes"""
+        name = self.provider_combo.currentText()
+        provider = self.provider_manager.get_provider(name)
+        if provider:
+            self.key_input.setText(provider.get("apiKey", ""))
+            self.url_input.setText(provider.get("baseUrl", ""))
+            self.model_input.setText(provider.get("model", ""))
+
+    def on_add_provider(self):
+        text, ok = QInputDialog.getText(self, "Add Provider", "Enter new provider name:")
+        if ok and text:
+            success, msg = self.provider_manager.add_provider(text)
+            if success:
+                self.refresh_providers_ui()
+                # Select the new one
+                index = self.provider_combo.findText(text)
+                if index >= 0:
+                    self.provider_combo.setCurrentIndex(index)
+            else:
+                QMessageBox.warning(self, "Error", msg)
+
+    def on_save_provider(self):
+        name = self.provider_combo.currentText()
+        if not name:
+            return
+            
+        success, msg = self.provider_manager.update_provider(
+            name,
+            self.key_input.text(),
+            self.url_input.text(),
+            self.model_input.text()
+        )
+        if success:
+            QMessageBox.information(self, "Success", "Provider configuration saved!")
+        else:
+            QMessageBox.warning(self, "Error", msg)
+
+    def on_delete_provider(self):
+        name = self.provider_combo.currentText()
+        if not name:
+            return
+            
+        if self.provider_combo.count() <= 1:
+            QMessageBox.warning(self, "Warning", "Cannot delete the last provider.")
+            return
+
+        reply = QMessageBox.question(self, "Confirm Delete", 
+                                   f"Are you sure you want to delete '{name}'?",
+                                   QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            success, msg = self.provider_manager.delete_provider(name)
+            if success:
+                self.refresh_providers_ui()
+            else:
+                QMessageBox.warning(self, "Error", msg)
+
+    def on_test_connection(self):
+        name = self.provider_combo.currentText()
+        if not name:
+            return
+            
+        # Use current values from inputs, not just saved ones
+        temp_config = {
+            "name": name,
+            "apiKey": self.key_input.text(),
+            "baseUrl": self.url_input.text(),
+            "model": self.model_input.text()
+        }
         
-        self.key_input = QLineEdit()
-        self.key_input.setPlaceholderText("Enter your API key...")
-        self.key_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.key_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #1e1e1e;
-                color: #ffffff;
-                border: 1px solid #444444;
-                border-radius: 4px;
-                padding: 8px;
-            }
-        """)
-        layout.addWidget(self.key_input)
+        self.status_label.setText("Testing connection...")
+        QtWidgets.QApplication.processEvents() # Force UI update
         
-        # Model
-        model_label = QLabel("Model:")
-        model_label.setStyleSheet("color: #cccccc; font-weight: bold; padding: 5px; padding-top: 15px;")
-        layout.addWidget(model_label)
+        success, msg = self.provider_manager.test_connection(temp_config)
         
-        self.model_input = QLineEdit()
-        self.model_input.setPlaceholderText("gemini-3-pro-image-preview")
-        self.model_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #1e1e1e;
-                color: #ffffff;
-                border: 1px solid #444444;
-                border-radius: 4px;
-                padding: 8px;
-            }
-        """)
-        layout.addWidget(self.model_input)
+        self.status_label.setText("Ready")
         
-        # Save 按钮
-        save_button = QPushButton("💾 Save Settings")
-        save_button.setMinimumHeight(40)
-        save_button.setStyleSheet("""
-            QPushButton {
-                background-color: #28a745;
-                color: #ffffff;
-                border: none;
-                border-radius: 4px;
-                padding: 10px;
-                font-size: 14px;
-                font-weight: bold;
-                margin-top: 15px;
-            }
-            QPushButton:hover {
-                background-color: #34c759;
-            }
-            QPushButton:pressed {
-                background-color: #218838;
-            }
-        """)
-        save_button.clicked.connect(self.on_save_settings_clicked)
-        layout.addWidget(save_button)
+        if success:
+            QMessageBox.information(self, "Connection Successful", msg)
+        else:
+            QMessageBox.critical(self, "Connection Failed", msg)
+
+    def on_debug_changed(self, state):
+        self.current_settings["debug_mode"] = (state == QtCore.Qt.Checked)
+        if self.current_settings["debug_mode"]:
+            print("Debug Mode Enabled")
+
+    # --- Preset Event Handlers ---
+
+    def refresh_presets_ui(self):
+        current_text = self.preset_combo.currentText()
+        self.preset_combo.blockSignals(True)
+        self.preset_combo.clear()
+        names = self.preset_manager.get_all_names()
+        self.preset_combo.addItems(names)
         
-        # 添加弹性空间
-        layout.addStretch()
+        index = self.preset_combo.findText(current_text)
+        if index >= 0:
+            self.preset_combo.setCurrentIndex(index)
         
-        tab.setLayout(layout)
-        return tab
-    
-    def on_generate_clicked(self):
-        """Generate 按钮点击事件（占位）"""
-        self.status_label.setText("Generate functionality coming soon...")
-        print("Generate button clicked - placeholder")
-    
-    def on_save_settings_clicked(self):
-        """Save Settings 按钮点击事件（占位）"""
-        print("Save settings button clicked - placeholder")
-        # TODO: 实现设置保存功能
+        self.preset_combo.blockSignals(False)
+
+    def on_preset_changed(self):
+        name = self.preset_combo.currentText()
+        prompt = self.preset_manager.get_prompt(name)
+        if prompt:
+            self.prompt_input.setText(prompt)
+
+    def on_add_preset(self):
+        text, ok = QInputDialog.getText(self, "Add Preset", "Enter new preset name:")
+        if ok and text:
+            success, msg = self.preset_manager.add_preset(text, self.prompt_input.toPlainText())
+            if success:
+                self.refresh_presets_ui()
+                index = self.preset_combo.findText(text)
+                if index >= 0:
+                    self.preset_combo.setCurrentIndex(index)
+            else:
+                QMessageBox.warning(self, "Error", msg)
+
+    def on_save_preset(self):
+        name = self.preset_combo.currentText()
+        if not name: return
+        
+        success, msg = self.preset_manager.update_preset(name, self.prompt_input.toPlainText())
+        if success:
+            QMessageBox.information(self, "Success", "Preset saved!")
+        else:
+            QMessageBox.warning(self, "Error", msg)
+
+    def on_rename_preset(self):
+        old_name = self.preset_combo.currentText()
+        if not old_name: return
+        
+        new_name, ok = QInputDialog.getText(self, "Rename Preset", "Enter new name:", text=old_name)
+        if ok and new_name:
+            success, msg = self.preset_manager.rename_preset(old_name, new_name)
+            if success:
+                self.refresh_presets_ui()
+                index = self.preset_combo.findText(new_name)
+                if index >= 0:
+                    self.preset_combo.setCurrentIndex(index)
+            else:
+                QMessageBox.warning(self, "Error", msg)
+
+    def on_delete_preset(self):
+        name = self.preset_combo.currentText()
+        if not name: return
+        
+        reply = QMessageBox.question(self, "Confirm Delete", 
+                                   f"Are you sure you want to delete '{name}'?",
+                                   QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            success, msg = self.preset_manager.delete_preset(name)
+            if success:
+                self.refresh_presets_ui()
+            else:
+                QMessageBox.warning(self, "Error", msg)
+
+    # --- Generation Event Handlers ---
+
+
+
+    def on_regenerate_clicked(self):
+        # Placeholder for regenerate logic
+        QMessageBox.information(self, "Info", "Regenerate feature coming soon.")
+
+    def on_load_prompt_clicked(self):
+        # Placeholder for load prompt logic
+        QMessageBox.information(self, "Info", "Load Last Prompt feature coming soon.")

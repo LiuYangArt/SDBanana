@@ -1,0 +1,10 @@
+[
+    {
+        "name": "Enhance Details",
+        "prompt": "Enhance the details of this image, make it high resolution, 8k, realistic texture."
+    },
+    {
+        "name": "Remove Background",
+        "prompt": "Remove the background, keep the subject only, white background."
+    }
+]

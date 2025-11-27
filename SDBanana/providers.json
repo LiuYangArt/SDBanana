@@ -1,0 +1,14 @@
+[
+    {
+        "name": "Yunwu Gemini",
+        "apiKey": "sk-gwbIXiJfWpxQiaKpYs30aR5fZQVjgpqICFdjsWwMoB4UO7Mk",
+        "baseUrl": "https://yunwu.zeabur.app/v1beta",
+        "model": "gemini-3-pro-image-preview"
+    },
+    {
+        "name": "GPTGod NanoBanana Pro",
+        "apiKey": "sk-wZ5cMY3HnhVoqUepkh2Ine3rBBlLG8Tbak9ivUAcRo85PhkP",
+        "baseUrl": "https://api.gptgod.online/v1/chat/completions",
+        "model": "gemini-3-pro-image-preview"
+    }
+]
