@@ -43,7 +43,7 @@ class ImageImporter:
     def import_image(self, file_path):
         """
         Imports an image file as a resource into the current package 
-        (into SDBanana folder) and creates a bitmap node in the current graph.
+        (into SDBanana folder). Optionally creates a bitmap node if a graph is found.
         """
         if not SD_AVAILABLE:
             return False, "Substance Designer API not available."
@@ -63,23 +63,38 @@ class ImageImporter:
             folder = self._get_or_create_folder(package, "SDBanana")
             parent = folder if folder else package
             
-            # Create bitmap resource from file
-            # Try Embedded first, fallback to Linked if it fails
+            # Try different embed methods
             resource = None
-            embed_method = EmbedMethod.Linked  # Use Linked for reliability
+            tried_methods = []
             
+            # Method 1: Try CopiedAndLinked (copies file and links to copy)
             try:
                 resource = SDResourceBitmap.sNewFromFile(
                     parent,
                     file_path,
-                    embed_method
+                    EmbedMethod.CopiedAndLinked
                 )
+                if resource:
+                    tried_methods.append("CopiedAndLinked (success)")
             except Exception as e:
-                # If embedding fails, the error will be caught by outer try-catch
-                raise Exception(f"Failed to import with {embed_method}: {str(e)}")
+                tried_methods.append(f"CopiedAndLinked (failed: {e})")
+            
+            # Method 2: Fallback to Linked if CopiedAndLinked failed
+            if not resource:
+                try:
+                    resource = SDResourceBitmap.sNewFromFile(
+                        parent,
+                        file_path,
+                        EmbedMethod.Linked
+                    )
+                    if resource:
+                        tried_methods.append("Linked (success)")
+                except Exception as e:
+                    tried_methods.append(f"Linked (failed: {e})")
             
             if not resource:
-                return False, "Failed to create bitmap resource."
+                error_detail = "; ".join(tried_methods)
+                return False, f"Failed to create resource. Attempts: {error_detail}"
             
             # Set a clean identifier (filename without path)
             filename = os.path.splitext(os.path.basename(file_path))[0]
@@ -88,28 +103,33 @@ class ImageImporter:
             except:
                 pass  # If identifier setting fails, continue anyway
             
-            # Find a graph to place the node
-            # Search recursively for graphs
-            all_resources = package.getChildrenResources(True) # Recursive
-            target_graph = None
+            # Resource imported successfully!
+            folder_msg = f"in folder 'SDBanana'" if folder else "in package"
+            success_msg = f"Resource imported {folder_msg}"
             
-            for child in all_resources:
-                class_name = child.getClassName()
-                if class_name == "SDGraph":
-                    target_graph = child
-                    break
+            # OPTIONAL: Try to create node in graph if one exists
+            # This is not required for success
+            try:
+                all_resources = package.getChildrenResources(True) # Recursive
+                target_graph = None
+                
+                for child in all_resources:
+                    if child.getClassName() == "SDGraph":
+                        target_graph = child
+                        break
+                
+                if target_graph:
+                    # Try to create node
+                    node = target_graph.newInstanceNode(resource)
+                    if node:
+                        success_msg += f" and added to graph '{target_graph.getIdentifier()}'"
+                    else:
+                        success_msg += " (node creation skipped)"
+            except Exception as e:
+                # Graph node creation is optional, don't fail if it doesn't work
+                pass
             
-            if not target_graph:
-                return True, f"Resource imported to folder '{folder.getIdentifier() if folder else 'root'}' but no graph found. Please manually add to your graph."
-            
-            # Create bitmap node in the graph
-            node = target_graph.newInstanceNode(resource)
-            
-            if node:
-                folder_info = f" in folder '{folder.getIdentifier()}'" if folder else ""
-                return True, f"Image imported{folder_info} and added to graph '{target_graph.getIdentifier()}'"
-            else:
-                return True, f"Resource imported but could not create node in graph."
+            return True, success_msg
 
         except Exception as e:
             return False, f"Import Error: {str(e)}"
