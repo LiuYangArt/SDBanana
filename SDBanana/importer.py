@@ -107,28 +107,6 @@ class ImageImporter:
             folder_msg = f"in folder 'SDBanana'" if folder else "in package"
             success_msg = f"Resource imported {folder_msg}"
             
-            # OPTIONAL: Try to create node in graph if one exists
-            # This is not required for success
-            try:
-                all_resources = package.getChildrenResources(True) # Recursive
-                target_graph = None
-                
-                for child in all_resources:
-                    if child.getClassName() == "SDGraph":
-                        target_graph = child
-                        break
-                
-                if target_graph:
-                    # Try to create node
-                    node = target_graph.newInstanceNode(resource)
-                    if node:
-                        success_msg += f" and added to graph '{target_graph.getIdentifier()}'"
-                    else:
-                        success_msg += " (node creation skipped)"
-            except Exception as e:
-                # Graph node creation is optional, don't fail if it doesn't work
-                pass
-            
             return True, success_msg
 
         except Exception as e:

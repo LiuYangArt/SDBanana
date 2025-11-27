@@ -10,6 +10,7 @@ from .providers import ProviderManager
 from .presets import PresetManager
 from .generator import ImageGenerator
 from .importer import ImageImporter
+from .exporter import NodeExporter
 import os
 
 class SDBananaPanel(QWidget):
@@ -24,54 +25,13 @@ class SDBananaPanel(QWidget):
         self.preset_manager = PresetManager()
         self.image_generator = ImageGenerator(self.provider_manager)
         self.importer = ImageImporter()
+        self.exporter = NodeExporter()
         
         self.current_settings = {
             "debug_mode": False
         }
         self.init_ui()
 
-    # ... (skipping unchanged methods) ...
-
-    def on_generate_clicked(self):
-        prompt = self.prompt_input.toPlainText()
-        if not prompt:
-            QMessageBox.warning(self, "Warning", "Please enter a prompt.")
-            return
-            
-        provider_name = self.provider_combo.currentText()
-        if not provider_name:
-            QMessageBox.warning(self, "Warning", "Please select a provider.")
-            return
-
-        self.status_label.setText("Generating image...")
-        self.generate_button.setEnabled(False)
-        QtWidgets.QApplication.processEvents()
-        
-        success, result = self.image_generator.generate_image(
-            prompt, 
-            provider_name,
-            resolution=self.res_combo.currentText(),
-            search_web=self.chk_search.isChecked(),
-            debug_mode=self.current_settings["debug_mode"]
-        )
-        
-        self.generate_button.setEnabled(True)
-        self.status_label.setText("Ready")
-        
-        if success:
-            # Import to SD
-            import_success, import_msg = self.importer.import_image(result)
-            
-            msg = f"Image saved to:\n{result}\n\n"
-            if import_success:
-                msg += f"Import: {import_msg}"
-            else:
-                msg += f"Import Failed: {import_msg}"
-                
-            QMessageBox.information(self, "Success", msg)
-        else:
-            QMessageBox.critical(self, "Error", f"Generation failed:\n{result}")
-    
     def init_ui(self):
         """Initialize UI"""
         # Main Layout
@@ -260,7 +220,7 @@ class SDBananaPanel(QWidget):
         self.res_combo.setStyleSheet(self._get_combo_style())
         res_layout.addWidget(self.res_combo)
 
-        # Search Web Toggle (Moved here)
+        # Search Web Toggle
         self.chk_search = QCheckBox("Search Web")
         self.chk_search.setStyleSheet("""
             QCheckBox {
@@ -279,23 +239,15 @@ class SDBananaPanel(QWidget):
         
         layout.addWidget(res_group)
 
-        # Test Import Button (for testing convenience)
-        self.btn_test_import = QPushButton("🔄 Test Import Last Generated Image")
-        self.btn_test_import.setStyleSheet("""
-            QPushButton {
-                background-color: #555555;
-                color: #ffffff;
-                border: none;
-                border-radius: 4px;
-                padding: 8px;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: #666666;
-            }
-        """)
-        self.btn_test_import.clicked.connect(self.on_test_import_clicked)
-        layout.addWidget(self.btn_test_import)
+        # Test Import Button
+        self.test_import_btn = QPushButton("Test Import Last Generated Image")
+        self.test_import_btn.clicked.connect(self.on_test_import_clicked)
+        layout.addWidget(self.test_import_btn)
+
+        # Export Selected Nodes Button
+        self.export_nodes_btn = QPushButton("Export Selected Nodes (WebP)")
+        self.export_nodes_btn.clicked.connect(self.on_export_nodes_clicked)
+        layout.addWidget(self.export_nodes_btn)
         
         # Spacer
         layout.addStretch()
@@ -643,6 +595,46 @@ class SDBananaPanel(QWidget):
 
 
 
+    def on_generate_clicked(self):
+        prompt = self.prompt_input.toPlainText()
+        if not prompt:
+            QMessageBox.warning(self, "Warning", "Please enter a prompt.")
+            return
+            
+        provider_name = self.provider_combo.currentText()
+        if not provider_name:
+            QMessageBox.warning(self, "Warning", "Please select a provider.")
+            return
+
+        self.status_label.setText("Generating image...")
+        self.generate_button.setEnabled(False)
+        QtWidgets.QApplication.processEvents()
+        
+        success, result = self.image_generator.generate_image(
+            prompt, 
+            provider_name,
+            resolution=self.res_combo.currentText(),
+            search_web=self.chk_search.isChecked(),
+            debug_mode=self.current_settings["debug_mode"]
+        )
+        
+        self.generate_button.setEnabled(True)
+        self.status_label.setText("Ready")
+        
+        if success:
+            # Import to SD
+            import_success, import_msg = self.importer.import_image(result)
+            
+            msg = f"Image saved to:\n{result}\n\n"
+            if import_success:
+                msg += f"Import: {import_msg}"
+            else:
+                msg += f"Import Failed: {import_msg}"
+                
+            QMessageBox.information(self, "Success", msg)
+        else:
+            QMessageBox.critical(self, "Error", f"Generation failed:\n{result}")
+
     def on_test_import_clicked(self):
         """Test import handler - imports the last generated image"""
         # Find the most recent image in the output directory
@@ -670,6 +662,15 @@ class SDBananaPanel(QWidget):
             QMessageBox.information(self, "Success", f"Imported:\n{latest_image}\n\n{msg}")
         else:
             QMessageBox.critical(self, "Error", f"Import failed:\n{msg}")
+
+    def on_export_nodes_clicked(self):
+        """Handler for Export Selected Nodes button"""
+        success, msg = self.exporter.export_selected_nodes()
+        
+        if success:
+            QMessageBox.information(self, "Success", msg)
+        else:
+            QMessageBox.warning(self, "Export Failed", msg)
 
     def on_regenerate_clicked(self):
         # Placeholder for regenerate logic
