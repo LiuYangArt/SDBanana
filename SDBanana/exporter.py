@@ -98,29 +98,50 @@ class NodeExporter:
                     if isinstance(value, SDValueTexture):
                         texture = value.get()
                         if texture:
-                            # Generate filename
-                            filename = f"{node_id}_{prop_id}_{timestamp}.png"
-                            temp_path = os.path.join(self.output_dir, filename)
+                            # Try to save directly as WebP first
+                            webp_filename = f"{node_id}_{prop_id}_{timestamp}.webp"
+                            target_path = os.path.join(self.output_dir, webp_filename)
                             
-                            print(f"DEBUG: Saving texture to: {temp_path}")
-                            texture.save(temp_path)
-                            
-                            # Convert to WebP if available
-                            if PIL_AVAILABLE:
-                                webp_filename = f"{node_id}_{prop_id}_{timestamp}.webp"
-                                target_path = os.path.join(self.output_dir, webp_filename)
-                                if self.convert_to_webp(temp_path, target_path):
+                            direct_save_success = False
+                            try:
+                                print(f"DEBUG: Attempting direct save to: {target_path}")
+                                texture.save(target_path)
+                                # Verify if file exists and has size
+                                if os.path.exists(target_path) and os.path.getsize(target_path) > 0:
+                                    direct_save_success = True
                                     exported_count += 1
-                                    # Remove temp PNG
-                                    try:
-                                        os.remove(temp_path)
-                                    except:
-                                        pass
+                                    print("DEBUG: Direct WebP save successful.")
                                 else:
-                                    # Keep PNG if conversion fails
-                                    exported_count += 1
-                            else:
-                                exported_count += 1
+                                    print("DEBUG: Direct WebP save failed (file empty or missing).")
+                            except Exception as e:
+                                print(f"DEBUG: Direct WebP save failed with error: {e}")
+                            
+                            if not direct_save_success:
+                                print("DEBUG: Falling back to PNG export + PIL conversion.")
+                                # Fallback to PNG
+                                png_filename = f"{node_id}_{prop_id}_{timestamp}.png"
+                                temp_path = os.path.join(self.output_dir, png_filename)
+                                
+                                try:
+                                    texture.save(temp_path)
+                                    
+                                    # Convert to WebP if available
+                                    if PIL_AVAILABLE:
+                                        if self.convert_to_webp(temp_path, target_path):
+                                            exported_count += 1
+                                            # Remove temp PNG
+                                            try:
+                                                os.remove(temp_path)
+                                            except:
+                                                pass
+                                        else:
+                                            # Keep PNG if conversion fails
+                                            exported_count += 1
+                                    else:
+                                        exported_count += 1
+                                except Exception as e:
+                                    print(f"DEBUG: Fallback export failed: {e}")
+
                         else:
                              print(f"DEBUG: Property {prop_id} has no texture data.")
                     else:
