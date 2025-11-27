@@ -4,8 +4,9 @@ try:
     import sd
     from sd.api.sdpackage import SDPackage
     from sd.api.sdresourcebitmap import SDResourceBitmap
-    from sd.api.sdgraph import SDGraph
-    from sd.api.sdnode import SDNode
+    from sd.api.sdresourcefolder import SDResourceFolder
+    from sd.api.sdresource import EmbedMethod
+    from sd.api.sdgraph import SDGraph  
     SD_AVAILABLE = True
 except ImportError:
     SD_AVAILABLE = False
@@ -20,73 +21,95 @@ class ImageImporter:
         else:
             self.ctx = None
 
+    def _get_or_create_folder(self, package, folder_name="SDBanana"):
+        """Get or create a resource folder in the package."""
+        try:
+            # Check if folder already exists
+            resources = package.getChildrenResources(False)
+            for resource in resources:
+                if resource.getClassName() == "SDResourceFolder" and resource.getIdentifier() == folder_name:
+                    return resource
+            
+            # Create new folder
+            folder = SDResourceFolder.sNew(package)
+            if folder:
+                folder.setIdentifier(folder_name)
+                return folder
+            return None
+        except Exception as e:
+            print(f"Folder creation error: {e}")
+            return None
+
     def import_image(self, file_path):
         """
         Imports an image file as a resource into the current package 
-        and creates a node in the current graph.
+        (into SDBanana folder) and creates a bitmap node in the current graph.
         """
         if not SD_AVAILABLE:
             return False, "Substance Designer API not available."
 
         if not os.path.exists(file_path):
-            return False, "File not found."
+            return False, f"File not found: {file_path}"
 
-        # Get Current Graph and Package
-        # Note: This logic assumes the user has a graph open and focused.
-        # We might need to iterate or get the 'active' one.
-        
-        # Strategy: Get the package of the currently selected graph or just the first user package.
-        # SD API doesn't always have a clear "Active Document" like Photoshop.
-        # We'll try to get the package that contains the currently visible graph.
-        
-        # For now, let's grab the first user package if available.
-        packages = self.pkg_mgr.getUserPackages()
-        if not packages or len(packages) == 0:
-            return False, "No package open in Substance Designer."
-        
-        package = packages[0] # Default to first package
-        
-        # Import Resource
         try:
-            # Check if resource already exists? 
-            # SD usually handles duplicates or we can rename.
-            # createResource(resourcePath, resourceType)
-            # resourceType for bitmap is SDResourceBitmap? Or just use the class type?
-            # The API usually expects the type class or an enum.
-            # Based on docs, createResource takes (path, type_id/class).
+            # Get user packages
+            packages = self.pkg_mgr.getUserPackages()
+            if not packages or len(packages) == 0:
+                return False, "No package open in Substance Designer."
             
-            # Let's try importing.
-            resource = package.createResource(file_path, SDResourceBitmap.sClass())
+            package = packages[0] # Use first user package
+            
+            # Get or create SDBanana folder
+            folder = self._get_or_create_folder(package, "SDBanana")
+            parent = folder if folder else package
+            
+            # Create bitmap resource from file
+            # Try Embedded first, fallback to Linked if it fails
+            resource = None
+            embed_method = EmbedMethod.Linked  # Use Linked for reliability
+            
+            try:
+                resource = SDResourceBitmap.sNewFromFile(
+                    parent,
+                    file_path,
+                    embed_method
+                )
+            except Exception as e:
+                # If embedding fails, the error will be caught by outer try-catch
+                raise Exception(f"Failed to import with {embed_method}: {str(e)}")
+            
             if not resource:
-                return False, "Failed to create resource."
+                return False, "Failed to create bitmap resource."
             
-            # Now add to Graph
-            # We need the current graph.
-            # Is there a way to get the active graph?
-            # ui_mgr = self.app.getQtForPythonUIMgr() ? No.
+            # Set a clean identifier (filename without path)
+            filename = os.path.splitext(os.path.basename(file_path))[0]
+            try:
+                resource.setIdentifier(filename)
+            except:
+                pass  # If identifier setting fails, continue anyway
             
-            # Let's search for a graph in the package.
-            graphs = package.getChildrenResources(False) # False = non-recursive?
+            # Find a graph to place the node
+            # Search recursively for graphs
+            all_resources = package.getChildrenResources(True) # Recursive
             target_graph = None
             
-            # Filter for SDGraph
-            for child in graphs:
-                if issubclass(type(child), SDGraph) or child.getClassName() == "SDGraph":
+            for child in all_resources:
+                class_name = child.getClassName()
+                if class_name == "SDGraph":
                     target_graph = child
                     break
             
             if not target_graph:
-                return False, "No graph found in the package."
+                return True, f"Resource imported to folder '{folder.getIdentifier() if folder else 'root'}' but no graph found. Please manually add to your graph."
             
-            # Create Node
-            # newInstanceNode(resource)
+            # Create bitmap node in the graph
             node = target_graph.newInstanceNode(resource)
+            
             if node:
-                # Position the node?
-                # node.setPosition(float2(0, 0))
-                return True, f"Image imported to graph '{target_graph.getIdentifier()}'"
+                folder_info = f" in folder '{folder.getIdentifier()}'" if folder else ""
+                return True, f"Image imported{folder_info} and added to graph '{target_graph.getIdentifier()}'"
             else:
-                return False, "Failed to create node instance."
+                return True, f"Resource imported but could not create node in graph."
 
         except Exception as e:
             return False, f"Import Error: {str(e)}"

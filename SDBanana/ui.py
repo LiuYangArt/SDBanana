@@ -278,6 +278,24 @@ class SDBananaPanel(QWidget):
         res_layout.addStretch()
         
         layout.addWidget(res_group)
+
+        # Test Import Button (for testing convenience)
+        self.btn_test_import = QPushButton("🔄 Test Import Last Generated Image")
+        self.btn_test_import.setStyleSheet("""
+            QPushButton {
+                background-color: #555555;
+                color: #ffffff;
+                border: none;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #666666;
+            }
+        """)
+        self.btn_test_import.clicked.connect(self.on_test_import_clicked)
+        layout.addWidget(self.btn_test_import)
         
         # Spacer
         layout.addStretch()
@@ -624,6 +642,34 @@ class SDBananaPanel(QWidget):
     # --- Generation Event Handlers ---
 
 
+
+    def on_test_import_clicked(self):
+        """Test import handler - imports the last generated image"""
+        # Find the most recent image in the output directory
+        output_dir = self.image_generator.output_dir
+        if not os.path.exists(output_dir):
+            QMessageBox.warning(self, "Warning", "No generated images found.")
+            return
+        
+        import glob
+        images = glob.glob(os.path.join(output_dir, "sd_banana_*.png")) + \
+                 glob.glob(os.path.join(output_dir, "sd_banana_*.webp"))
+        
+        if not images:
+            QMessageBox.warning(self, "Warning", "No generated images found.")
+            return
+        
+        # Sort by modification time, get the latest
+        images.sort(key=os.path.getmtime, reverse=True)
+        latest_image = images[0]
+        
+        # Import it
+        success, msg = self.importer.import_image(latest_image)
+        
+        if success:
+            QMessageBox.information(self, "Success", f"Imported:\n{latest_image}\n\n{msg}")
+        else:
+            QMessageBox.critical(self, "Error", f"Import failed:\n{msg}")
 
     def on_regenerate_clicked(self):
         # Placeholder for regenerate logic
