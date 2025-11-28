@@ -145,18 +145,31 @@ class SDBananaPanel(QWidget):
         layout = QVBoxLayout()
 
         # --- Presets Section ---
-        preset_group = QWidget()
-        preset_layout = QHBoxLayout(preset_group)
-        preset_layout.setContentsMargins(0, 0, 0, 0)
+        # First row: Label and ComboBox
+        preset_row1 = QWidget()
+        preset_row1_layout = QHBoxLayout(preset_row1)
+        preset_row1_layout.setContentsMargins(0, 0, 0, 0)
 
         preset_label = QLabel("Prompt Presets:")
         preset_label.setStyleSheet("color: #cccccc; font-weight: bold;")
-        preset_layout.addWidget(preset_label)
+        preset_row1_layout.addWidget(preset_label)
 
         self.preset_combo = QComboBox()
         self.preset_combo.setStyleSheet(self._get_combo_style())
         self.preset_combo.currentIndexChanged.connect(self.on_preset_changed)
-        preset_layout.addWidget(self.preset_combo, 1)
+        preset_row1_layout.addWidget(self.preset_combo, 1)
+
+        # Add arrow indicator
+        arrow_label = QLabel("▼")
+        arrow_label.setStyleSheet("color: #888888; font-size: 10px; padding-left: 2px;")
+        preset_row1_layout.addWidget(arrow_label)
+
+        layout.addWidget(preset_row1)
+
+        # Second row: Buttons
+        preset_row2 = QWidget()
+        preset_row2_layout = QHBoxLayout(preset_row2)
+        preset_row2_layout.setContentsMargins(0, 5, 0, 0)
 
         btn_style = """
             QPushButton {
@@ -165,6 +178,8 @@ class SDBananaPanel(QWidget):
                 border: none;
                 border-radius: 3px;
                 padding: 5px 10px;
+                text-align: left;
+                padding-left: 10px;
             }
             QPushButton:hover { background-color: #555555; }
         """
@@ -173,27 +188,29 @@ class SDBananaPanel(QWidget):
         self.btn_add_preset.setFixedWidth(30)
         self.btn_add_preset.setStyleSheet(btn_style)
         self.btn_add_preset.clicked.connect(self.on_add_preset)
-        preset_layout.addWidget(self.btn_add_preset)
+        preset_row2_layout.addWidget(self.btn_add_preset)
 
         self.btn_save_preset = QPushButton("Save")
-        self.btn_save_preset.setFixedWidth(50)
+        self.btn_save_preset.setFixedWidth(60)
         self.btn_save_preset.setStyleSheet(btn_style)
         self.btn_save_preset.clicked.connect(self.on_save_preset)
-        preset_layout.addWidget(self.btn_save_preset)
+        preset_row2_layout.addWidget(self.btn_save_preset)
 
         self.btn_rename_preset = QPushButton("Rename")
-        self.btn_rename_preset.setFixedWidth(60)
+        self.btn_rename_preset.setFixedWidth(70)
         self.btn_rename_preset.setStyleSheet(btn_style)
         self.btn_rename_preset.clicked.connect(self.on_rename_preset)
-        preset_layout.addWidget(self.btn_rename_preset)
+        preset_row2_layout.addWidget(self.btn_rename_preset)
 
         self.btn_del_preset = QPushButton("Del")
-        self.btn_del_preset.setFixedWidth(40)
+        self.btn_del_preset.setFixedWidth(50)
         self.btn_del_preset.setStyleSheet(btn_style)
         self.btn_del_preset.clicked.connect(self.on_delete_preset)
-        preset_layout.addWidget(self.btn_del_preset)
+        preset_row2_layout.addWidget(self.btn_del_preset)
 
-        layout.addWidget(preset_group)
+        preset_row2_layout.addStretch()
+
+        layout.addWidget(preset_row2)
 
         # Prompt Input
         prompt_label = QLabel("Prompt:")
@@ -270,6 +287,11 @@ class SDBananaPanel(QWidget):
         self.res_combo.setStyleSheet(self._get_combo_style())
         res_layout.addWidget(self.res_combo)
 
+        # Add arrow indicator
+        arrow_label = QLabel("▼")
+        arrow_label.setStyleSheet("color: #888888; font-size: 10px; padding-left: 2px;")
+        res_layout.addWidget(arrow_label)
+
         # Search Web Toggle removed
 
         res_layout.addStretch()
@@ -329,6 +351,11 @@ class SDBananaPanel(QWidget):
         self.provider_combo.currentIndexChanged.connect(self.on_provider_changed)
         provider_layout.addWidget(self.provider_combo, 1)  # Stretch factor 1
 
+        # Add arrow indicator
+        arrow_label = QLabel("▼")
+        arrow_label.setStyleSheet("color: #888888; font-size: 10px; padding-left: 2px;")
+        provider_layout.addWidget(arrow_label)
+
         # Provider Actions
         btn_style = """
             QPushButton {
@@ -337,6 +364,8 @@ class SDBananaPanel(QWidget):
                 border: none;
                 border-radius: 3px;
                 padding: 5px 10px;
+                text-align: left;
+                padding-left: 10px;
             }
             QPushButton:hover { background-color: #555555; }
         """
@@ -455,14 +484,11 @@ class SDBananaPanel(QWidget):
                 color: #ffffff;
                 border: 1px solid #444444;
                 border-radius: 4px;
-                padding: 5px;
+                padding: 5px 8px;
             }
-            QComboBox::drop-down { border: none; }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid #cccccc;
+            QComboBox::drop-down {
+                width: 0px;
+                border: none;
             }
         """
 
