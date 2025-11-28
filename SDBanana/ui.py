@@ -298,11 +298,11 @@ class SDBananaPanel(QWidget):
 
         layout.addWidget(res_group)
 
-        # Test Import Button
+        # Test Import Button (hidden)
         self.test_import_btn = QPushButton("Test Import Last Generated Image")
         self.test_import_btn.clicked.connect(self.on_test_import_clicked)
-        # Always visible for easy testing
-        layout.addWidget(self.test_import_btn)
+        self.test_import_btn.setVisible(False)
+        # layout.addWidget(self.test_import_btn)
 
         # Export Selected Nodes Button
         self.export_nodes_btn = QPushButton("Export Selected Nodes (WebP)")
