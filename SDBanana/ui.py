@@ -481,18 +481,24 @@ class SDBananaPanel(QWidget):
 
     def refresh_providers_ui(self):
         """Reload provider list into combo box"""
-        current_text = self.provider_combo.currentText()
         self.provider_combo.blockSignals(True)
         self.provider_combo.clear()
         names = self.provider_manager.get_all_names()
         self.provider_combo.addItems(names)
 
-        # Restore selection if possible
-        index = self.provider_combo.findText(current_text)
+        # Try to restore saved selection first
+        saved_provider = self.current_settings.get("selected_provider")
+        index = -1
+
+        if saved_provider:
+            index = self.provider_combo.findText(saved_provider)
+
+        # If saved provider not found or doesn't exist, use first provider
+        if index < 0 and self.provider_combo.count() > 0:
+            index = 0
+
         if index >= 0:
             self.provider_combo.setCurrentIndex(index)
-        elif self.provider_combo.count() > 0:
-            self.provider_combo.setCurrentIndex(0)
 
         self.provider_combo.blockSignals(False)
         self.on_provider_changed()  # Update fields
@@ -505,6 +511,11 @@ class SDBananaPanel(QWidget):
             self.key_input.setText(provider.get("apiKey", ""))
             self.url_input.setText(provider.get("baseUrl", ""))
             self.model_input.setText(provider.get("model", ""))
+
+        # Save selected provider to settings
+        if name:
+            self.current_settings["selected_provider"] = name
+            self.settings_manager.set("selected_provider", name)
 
     def on_add_provider(self):
         text, ok = QInputDialog.getText(
