@@ -11,6 +11,7 @@ from .presets import PresetManager
 from .generator import ImageGenerator
 from .importer import ImageImporter
 from .exporter import NodeExporter
+from .settings import SettingsManager
 import os
 
 class SDBananaPanel(QWidget):
@@ -27,9 +28,8 @@ class SDBananaPanel(QWidget):
         self.importer = ImageImporter()
         self.exporter = NodeExporter()
         
-        self.current_settings = {
-            "debug_mode": False
-        }
+        self.settings_manager = SettingsManager()
+        self.current_settings = self.settings_manager.settings
         self.init_ui()
 
     def init_ui(self):
@@ -38,7 +38,7 @@ class SDBananaPanel(QWidget):
         main_layout = QVBoxLayout()
         
         # Title
-        title_label = QLabel("🍌 SD Banana - AI Image Generation")
+        title_label = QLabel("🍌 SD Banana by LiuYang")
         title_label.setStyleSheet("""
             QLabel {
                 font-size: 16px;
@@ -370,8 +370,24 @@ class SDBananaPanel(QWidget):
                 height: 15px;
             }
         """)
+        self.chk_debug.setChecked(self.current_settings.get("debug_mode", False))
         self.chk_debug.stateChanged.connect(self.on_debug_changed)
         layout.addWidget(self.chk_debug)
+
+        self.chk_save_images = QCheckBox("Save Generated Images")
+        self.chk_save_images.setStyleSheet("""
+            QCheckBox {
+                color: #cccccc;
+                padding-top: 5px;
+            }
+            QCheckBox::indicator {
+                width: 15px;
+                height: 15px;
+            }
+        """)
+        self.chk_save_images.setChecked(self.current_settings.get("save_generated_images", False))
+        self.chk_save_images.stateChanged.connect(self.on_save_images_changed)
+        layout.addWidget(self.chk_save_images)
         
         # Spacer
         layout.addStretch()
@@ -515,9 +531,18 @@ class SDBananaPanel(QWidget):
             QMessageBox.critical(self, "Connection Failed", msg)
 
     def on_debug_changed(self, state):
-        self.current_settings["debug_mode"] = (state == QtCore.Qt.Checked)
-        if self.current_settings["debug_mode"]:
+        is_checked = (state == QtCore.Qt.Checked)
+        self.current_settings["debug_mode"] = is_checked
+        self.settings_manager.set("debug_mode", is_checked)
+        if is_checked:
             print("Debug Mode Enabled")
+
+    def on_save_images_changed(self, state):
+        is_checked = (state == QtCore.Qt.Checked)
+        self.current_settings["save_generated_images"] = is_checked
+        self.settings_manager.set("save_generated_images", is_checked)
+        if is_checked:
+            print("Save Generated Images Enabled")
 
     # --- Preset Event Handlers ---
 
@@ -641,7 +666,7 @@ class SDBananaPanel(QWidget):
             provider_name,
             resolution=self.res_combo.currentText(),
             search_web=self.chk_search.isChecked(),
-            debug_mode=self.current_settings["debug_mode"],
+            debug_mode=self.chk_debug.isChecked(),
             input_image_path=input_image_path
         )
         
@@ -655,8 +680,26 @@ class SDBananaPanel(QWidget):
             msg = f"Image saved to:\n{result}\n\n"
             if import_success:
                 msg += f"Import: {import_msg}"
+                
+                # Cleanup Generated Image if "Save Generated Images" is False
+                if not self.chk_save_images.isChecked():
+                    try:
+                        if os.path.exists(result):
+                            os.remove(result)
+                            msg += "\n(Generated image file deleted)"
+                    except Exception as e:
+                        print(f"Error deleting generated image: {e}")
             else:
                 msg += f"Import Failed: {import_msg}"
+            
+            # Cleanup Input Image (Always cleanup temp export unless debug is on?)
+            # User requested: "delete the output to ai image" (input image)
+            if input_image_path and os.path.exists(input_image_path):
+                try:
+                    os.remove(input_image_path)
+                    print(f"DEBUG: Deleted temp input image: {input_image_path}")
+                except Exception as e:
+                    print(f"Error deleting temp input image: {e}")
                 
             QMessageBox.information(self, "Success", msg)
         else:

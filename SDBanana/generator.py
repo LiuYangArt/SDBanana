@@ -136,7 +136,8 @@ class ImageGenerator:
 
         # Debug Log
         if debug_mode:
-            print(f"--- DEBUG ---")
+            print(f"--- DEBUG MODE ENABLED ---")
+            print(f"Output Directory: {self.output_dir}")
             print(f"URL: {api_url}")
             # Truncate base64 for console logging
             log_payload = json.loads(json.dumps(payload))
