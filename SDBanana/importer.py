@@ -48,7 +48,7 @@ class ImageImporter:
             print(f"Folder creation error: {e}")
             return None
 
-    def import_image(self, file_path, create_bitmap_node=True):
+    def import_image(self, file_path, create_bitmap_node=True, insert_position=None):
         """
         Imports an image file as a resource into the current package
         (into SDBanana folder). Creates a bitmap node in the current graph if requested.
@@ -56,6 +56,7 @@ class ImageImporter:
         Args:
             file_path: Path to the image file to import
             create_bitmap_node: If True, creates a bitmap node in the current active graph
+            insert_position: Optional tuple(float, float) to position the bitmap node
         """
         if not SD_AVAILABLE:
             return False, "Substance Designer API not available."
@@ -125,8 +126,11 @@ class ImageImporter:
                         # Create bitmap node
                         bitmap_node = graph.newNode("sbs::compositing::bitmap")
 
-                        # Set node position (center of graph view)
-                        bitmap_node.setPosition(float2(0, 0))
+                        # Set node position
+                        if insert_position and isinstance(insert_position, (tuple, list)) and len(insert_position) == 2:
+                            bitmap_node.setPosition(float2(insert_position[0], insert_position[1]))
+                        else:
+                            bitmap_node.setPosition(float2(0, 0))
 
                         # Set the bitmap resource path
                         bitmap_resource_property = bitmap_node.getPropertyFromId(

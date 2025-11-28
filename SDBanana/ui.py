@@ -748,6 +748,9 @@ class SDBananaPanel(QWidget):
         self.status_label.setText("Checking selection...")
         QtWidgets.QApplication.processEvents()
 
+        # Reset planned insert position
+        self.insert_position_for_next_import = None
+
         # Check for selected nodes for Image-to-Image
         selected_nodes = self.exporter.get_selected_nodes()
         input_image_path = None
@@ -761,6 +764,28 @@ class SDBananaPanel(QWidget):
                 # result is a list of file paths
                 input_image_path = result[0]  # Use the first exported image
                 print(f"DEBUG: Using input image: {input_image_path}")
+                # Compute center position of selected nodes for insert
+                try:
+                    positions = []
+                    for n in selected_nodes:
+                        pos = n.getPosition()
+                        x = getattr(pos, "x", None)
+                        y = getattr(pos, "y", None)
+                        if x is None or y is None:
+                            try:
+                                x = pos[0]; y = pos[1]
+                            except Exception:
+                                x = 0; y = 0
+                        positions.append((x, y))
+                    xs = [p[0] for p in positions]
+                    ys = [p[1] for p in positions]
+                    center_x = (min(xs) + max(xs)) / 2.0
+                    center_y = (min(ys) + max(ys)) / 2.0
+                    self.insert_position_for_next_import = (center_x, center_y)
+                    print(f"DEBUG: Computed insert position: {self.insert_position_for_next_import}")
+                except Exception as e:
+                    print(f"DEBUG: Failed to compute selection center: {e}")
+                    self.insert_position_for_next_import = None
             else:
                 # Export failed, ask user if they want to continue with text-to-image
                 reply = QMessageBox.question(
@@ -774,6 +799,7 @@ class SDBananaPanel(QWidget):
                     self.status_label.setText("Ready")
                     return
                 # If Yes, input_image_path remains None, proceeds as Text-to-Image
+                self.insert_position_for_next_import = None
 
         self.status_label.setText("Generating image (Async)...")
         self.generate_button.setEnabled(False)
@@ -803,7 +829,7 @@ class SDBananaPanel(QWidget):
 
         if success:
             # Import to SD
-            import_success, import_msg = self.importer.import_image(result)
+            import_success, import_msg = self.importer.import_image(result, insert_position=getattr(self, "insert_position_for_next_import", None))
 
             # Cleanup Generated Image if "Save Generated Images" is False
             if not self.chk_save_images.isChecked():
