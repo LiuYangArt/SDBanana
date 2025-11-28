@@ -773,22 +773,15 @@ class SDBananaPanel(QWidget):
             # Import to SD
             import_success, import_msg = self.importer.import_image(result)
 
-            msg = f"Image saved to:\n{result}\n\n"
-            if import_success:
-                msg += f"Import: {import_msg}"
+            # Cleanup Generated Image if "Save Generated Images" is False
+            if not self.chk_save_images.isChecked():
+                try:
+                    if os.path.exists(result):
+                        os.remove(result)
+                except Exception as e:
+                    print(f"Error deleting generated image: {e}")
 
-                # Cleanup Generated Image if "Save Generated Images" is False
-                if not self.chk_save_images.isChecked():
-                    try:
-                        if os.path.exists(result):
-                            os.remove(result)
-                            msg += "\n(Generated image file deleted)"
-                    except Exception as e:
-                        print(f"Error deleting generated image: {e}")
-            else:
-                msg += f"Import Failed: {import_msg}"
-
-            # Cleanup Input Image (Always cleanup temp export unless debug is on?)
+            # Cleanup Input Image (Always cleanup temp export)
             if input_image_path and os.path.exists(input_image_path):
                 try:
                     os.remove(input_image_path)
@@ -796,7 +789,13 @@ class SDBananaPanel(QWidget):
                 except Exception as e:
                     print(f"Error deleting temp input image: {e}")
 
-            QMessageBox.information(self, "Success", msg)
+            # Show simple success message
+            if import_success:
+                QMessageBox.information(self, "Success", "Image generation completed!")
+            else:
+                QMessageBox.warning(
+                    self, "Warning", f"Image generated but import failed:\n{import_msg}"
+                )
         else:
             QMessageBox.critical(self, "Error", f"Generation failed:\n{result}")
 
