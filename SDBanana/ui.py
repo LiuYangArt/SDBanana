@@ -298,11 +298,55 @@ class SDBananaPanel(QWidget):
 
         layout.addWidget(res_group)
 
-        # Test Import Button (hidden)
-        self.test_import_btn = QPushButton("Test Import Last Generated Image")
+        # Test Import Button (hidden for production)
+        test_import_group = QWidget()
+        test_import_layout = QVBoxLayout(test_import_group)
+        test_import_layout.setContentsMargins(0, 10, 0, 0)
+        
+        self.test_import_btn = QPushButton("🔄 Test Import Last Generated Image")
+        self.test_import_btn.setMinimumHeight(35)
+        self.test_import_btn.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #2d5a2d;
+                color: #ffffff;
+                border: none;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #3a6f3a;
+            }
+            QPushButton:pressed {
+                background-color: #234523;
+            }
+        """
+        )
         self.test_import_btn.clicked.connect(self.on_test_import_clicked)
-        self.test_import_btn.setVisible(False)
-        # layout.addWidget(self.test_import_btn)
+        test_import_layout.addWidget(self.test_import_btn)
+        
+        # Resolution selector for test import
+        test_res_group = QWidget()
+        test_res_layout = QHBoxLayout(test_res_group)
+        test_res_layout.setContentsMargins(0, 5, 0, 0)
+        
+        test_res_label = QLabel("Test Import Resolution:")
+        test_res_label.setStyleSheet("color: #888888; font-size: 11px;")
+        test_res_layout.addWidget(test_res_label)
+        
+        self.test_res_combo = QComboBox()
+        self.test_res_combo.addItems(["1K", "2K", "4K"])
+        self.test_res_combo.setCurrentIndex(0)
+        self.test_res_combo.setStyleSheet(self._get_combo_style())
+        test_res_layout.addWidget(self.test_res_combo)
+        
+        test_res_layout.addStretch()
+        test_import_layout.addWidget(test_res_group)
+        
+        # Hide test import button and options for production
+        test_import_group.setVisible(False)
+        # layout.addWidget(test_import_group)  # Commented out to completely remove from layout
 
         # Export Selected Nodes Button
         self.export_nodes_btn = QPushButton("Export Selected Nodes (WebP)")
@@ -834,7 +878,13 @@ class SDBananaPanel(QWidget):
 
         if success:
             # Import to SD
-            import_success, import_msg = self.importer.import_image(result, insert_position=getattr(self, "insert_position_for_next_import", None))
+            current_resolution = self.res_combo.currentText()
+            import_success, import_msg = self.importer.import_image(
+                result, 
+                insert_position=getattr(self, "insert_position_for_next_import", None),
+                resolution=current_resolution,
+                aspect_ratio="1:1"  # Currently hardcoded, can be extended later
+            )
 
             # Cleanup Generated Image if "Save Generated Images" is False
             if not self.chk_save_images.isChecked():
@@ -863,7 +913,7 @@ class SDBananaPanel(QWidget):
             QMessageBox.critical(self, "Error", f"Generation failed:\n{result}")
 
     def on_test_import_clicked(self):
-        """Test import handler - imports the last generated image"""
+        """Test import handler - imports the last generated image with specified resolution"""
         # Find the most recent image in the output directory
         output_dir = self.image_generator.output_dir
         if not os.path.exists(output_dir):
@@ -884,12 +934,19 @@ class SDBananaPanel(QWidget):
         images.sort(key=os.path.getmtime, reverse=True)
         latest_image = images[0]
 
-        # Import it
-        success, msg = self.importer.import_image(latest_image)
+        # Get test resolution from combo box
+        test_resolution = self.test_res_combo.currentText()
+
+        # Import it with specified resolution
+        success, msg = self.importer.import_image(
+            latest_image,
+            resolution=test_resolution,
+            aspect_ratio="1:1"
+        )
 
         if success:
             QMessageBox.information(
-                self, "Success", f"Imported:\n{latest_image}\n\n{msg}"
+                self, "Success", f"Imported with {test_resolution} resolution:\n{latest_image}\n\n{msg}"
             )
         else:
             QMessageBox.critical(self, "Error", f"Import failed:\n{msg}")
