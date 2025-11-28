@@ -41,6 +41,7 @@ class ImageGenerator:
 
         # Determine API Type and Construct Payload
         is_gptgod = "gptgod" in provider_name.lower() or "gptgod" in base_url.lower()
+        is_openrouter = "openrouter" in provider_name.lower() or "openrouter.ai" in base_url.lower()
         
         payload = {}
         api_url = ""
@@ -61,7 +62,49 @@ class ImageGenerator:
             elif input_image_path.lower().endswith(".jpg") or input_image_path.lower().endswith(".jpeg"):
                 mime_type = "image/jpeg"
 
-        if is_gptgod:
+        if is_openrouter:
+            # OpenRouter Format (similar to OpenAI but with modalities and image_config)
+            api_url = base_url
+            headers["Authorization"] = f"Bearer {api_key}"
+            
+            # Build content list
+            content = prompt
+            
+            # If there's an input image, we need to use content array format
+            if base64_image:
+                content = [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{mime_type};base64,{base64_image}"
+                        }
+                    }
+                ]
+            
+            messages = [{"role": "user", "content": content}]
+            
+            # Build image_config based on resolution
+            image_config = {
+                "aspect_ratio": "1:1"  # Default to square
+            }
+            
+            # Map resolution to OpenRouter's image_size format
+            if resolution == "1K":
+                image_config["image_size"] = "1K"
+            elif resolution == "2K":
+                image_config["image_size"] = "2K"
+            elif resolution == "4K":
+                image_config["image_size"] = "4K"
+            
+            payload = {
+                "model": model,
+                "messages": messages,
+                "modalities": ["image", "text"],
+                "image_config": image_config
+            }
+            
+        elif is_gptgod:
             # GPTGod / OpenAI Format
             api_url = base_url
             headers["Authorization"] = f"Bearer {api_key}"
@@ -144,17 +187,20 @@ class ImageGenerator:
             print(f"Provider: {provider_name}")
             print(f"Resolution Setting: {resolution}")
             print(f"Is GPTGod: {is_gptgod}")
+            print(f"Is OpenRouter: {is_openrouter}")
             if is_gptgod:
                 print(f"Original Model: {model}")
                 print(f"Actual Model (after resolution): {actual_model}")
             print(f"URL: {api_url}")
             # Truncate base64 for console logging
             log_payload = json.loads(json.dumps(payload))
-            if is_gptgod:
-                if len(log_payload["messages"][0]["content"]) > 1:
-                     if isinstance(log_payload["messages"][0]["content"], list) and len(log_payload["messages"][0]["content"]) > 1:
-                        if "image_url" in log_payload["messages"][0]["content"][1]:
-                            log_payload["messages"][0]["content"][1]["image_url"]["url"] = "<BASE64_IMAGE_DATA>"
+            if is_openrouter or is_gptgod:
+                # Handle OpenRouter and GPTGod format
+                if "messages" in log_payload and log_payload["messages"]:
+                    content = log_payload["messages"][0].get("content", [])
+                    if isinstance(content, list) and len(content) > 1:
+                        if "image_url" in content[1]:
+                            content[1]["image_url"]["url"] = "<BASE64_IMAGE_DATA>"
             else:
                 if "contents" in log_payload and log_payload["contents"]:
                     parts = log_payload["contents"][0].get("parts", [])
@@ -194,19 +240,37 @@ class ImageGenerator:
                     print(f"Response: {json.dumps(response_json, indent=2)}")
                 
                 # Parse Response and Save Image
-                return self._process_response(response_json, is_gptgod)
+                return self._process_response(response_json, is_gptgod, is_openrouter)
 
         except urllib.error.HTTPError as e:
             return False, f"HTTP Error: {e.code} - {e.reason}"
         except Exception as e:
             return False, f"Error: {str(e)}"
 
-    def _process_response(self, response_json, is_gptgod):
+    def _process_response(self, response_json, is_gptgod, is_openrouter=False):
         image_data = None
         image_url = None
 
         # Extract Image Data
-        if is_gptgod:
+        if is_openrouter:
+            # OpenRouter format: choices[0].message.images[].image_url.url
+            if "choices" in response_json and response_json["choices"]:
+                message = response_json["choices"][0].get("message", {})
+                if "images" in message and message["images"]:
+                    # Get the first image
+                    image_info = message["images"][0]
+                    if "image_url" in image_info:
+                        image_url_data = image_info["image_url"].get("url", "")
+                        # Check if it's a base64 data URL
+                        if image_url_data.startswith("data:image"):
+                            # Extract base64 data from data URL
+                            # Format: data:image/png;base64,xxxxx
+                            if ";base64," in image_url_data:
+                                image_data = image_url_data.split(";base64,")[1]
+                        else:
+                            # It's a regular URL
+                            image_url = image_url_data
+        elif is_gptgod:
             # Check for URL
             if "image" in response_json:
                 image_url = response_json["image"]

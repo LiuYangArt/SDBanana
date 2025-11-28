@@ -32,6 +32,12 @@ class ProviderManager:
                     "apiKey": "",
                     "baseUrl": "https://api.gptgod.online/v1/chat/completions",
                     "model": "gemini-3-pro-image-preview"
+                },
+                {
+                    "name": "OpenRouter",
+                    "apiKey": "",
+                    "baseUrl": "https://openrouter.ai/api/v1/chat/completions",
+                    "model": "google/gemini-3-pro-image-preview"
                 }
             ]
             self.save()
@@ -107,6 +113,17 @@ class ProviderManager:
         elif "gptgod" in name.lower() or "gptgod" in base_url.lower():
             # GPTGod / OpenAI style
             # We want to hit /models
+            if "/chat/completions" in base_url:
+                api_url = base_url.replace("/chat/completions", "/models")
+            else:
+                if not base_url.endswith("/"):
+                    base_url += "/"
+                api_url = base_url + "models"
+            
+            headers["Authorization"] = f"Bearer {api_key}"
+        
+        elif "openrouter" in name.lower() or "openrouter.ai" in base_url.lower():
+            # OpenRouter style - similar to OpenAI
             if "/chat/completions" in base_url:
                 api_url = base_url.replace("/chat/completions", "/models")
             else:
