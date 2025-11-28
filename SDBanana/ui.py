@@ -781,6 +781,11 @@ class SDBananaPanel(QWidget):
                     ys = [p[1] for p in positions]
                     center_x = (min(xs) + max(xs)) / 2.0
                     center_y = (min(ys) + max(ys)) / 2.0
+                    # Apply offset for single selection to avoid overlap
+                    offset_x = 150 if len(selected_nodes) == 1 else 0
+                    offset_y = 0
+                    center_x += offset_x
+                    center_y += offset_y
                     self.insert_position_for_next_import = (center_x, center_y)
                     print(f"DEBUG: Computed insert position: {self.insert_position_for_next_import}")
                 except Exception as e:
