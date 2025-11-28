@@ -192,17 +192,8 @@ class SDBananaPanel(QWidget):
         self.generate_button.clicked.connect(self.on_generate_clicked)
         gen_layout.addWidget(self.generate_button, 2)
         
-        self.regenerate_button = QPushButton("Regenerate")
-        self.regenerate_button.setMinimumHeight(40)
-        self.regenerate_button.setStyleSheet(btn_style)
-        self.regenerate_button.clicked.connect(self.on_regenerate_clicked)
-        gen_layout.addWidget(self.regenerate_button, 1)
-        
-        self.load_prompt_button = QPushButton("Load Last Prompt")
-        self.load_prompt_button.setMinimumHeight(40)
-        self.load_prompt_button.setStyleSheet(btn_style)
-        self.load_prompt_button.clicked.connect(self.on_load_prompt_clicked)
-        gen_layout.addWidget(self.load_prompt_button, 1)
+        # Regenerate and Load Last Prompt buttons removed
+
         
         layout.addWidget(gen_group)
         
@@ -220,20 +211,8 @@ class SDBananaPanel(QWidget):
         self.res_combo.setStyleSheet(self._get_combo_style())
         res_layout.addWidget(self.res_combo)
 
-        # Search Web Toggle
-        self.chk_search = QCheckBox("Search Web")
-        self.chk_search.setStyleSheet("""
-            QCheckBox {
-                color: #cccccc;
-                padding: 5px;
-                margin-left: 10px;
-            }
-            QCheckBox::indicator {
-                width: 15px;
-                height: 15px;
-            }
-        """)
-        res_layout.addWidget(self.chk_search)
+        # Search Web Toggle removed
+
 
         res_layout.addStretch()
         
@@ -242,11 +221,13 @@ class SDBananaPanel(QWidget):
         # Test Import Button
         self.test_import_btn = QPushButton("Test Import Last Generated Image")
         self.test_import_btn.clicked.connect(self.on_test_import_clicked)
+        self.test_import_btn.setVisible(self.current_settings.get("debug_mode", False))
         layout.addWidget(self.test_import_btn)
 
         # Export Selected Nodes Button
         self.export_nodes_btn = QPushButton("Export Selected Nodes (WebP)")
         self.export_nodes_btn.clicked.connect(self.on_export_nodes_clicked)
+        self.export_nodes_btn.setVisible(self.current_settings.get("debug_mode", False))
         layout.addWidget(self.export_nodes_btn)
         
         # Spacer
@@ -534,6 +515,13 @@ class SDBananaPanel(QWidget):
         is_checked = (state == QtCore.Qt.Checked)
         self.current_settings["debug_mode"] = is_checked
         self.settings_manager.set("debug_mode", is_checked)
+        
+        # Toggle visibility of debug buttons
+        if hasattr(self, 'test_import_btn'):
+            self.test_import_btn.setVisible(is_checked)
+        if hasattr(self, 'export_nodes_btn'):
+            self.export_nodes_btn.setVisible(is_checked)
+            
         if is_checked:
             print("Debug Mode Enabled")
 
@@ -665,7 +653,7 @@ class SDBananaPanel(QWidget):
             prompt, 
             provider_name,
             resolution=self.res_combo.currentText(),
-            search_web=self.chk_search.isChecked(),
+            search_web=False,
             debug_mode=self.chk_debug.isChecked(),
             input_image_path=input_image_path
         )
@@ -744,10 +732,4 @@ class SDBananaPanel(QWidget):
         else:
             QMessageBox.warning(self, "Export Failed", result)
 
-    def on_regenerate_clicked(self):
-        # Placeholder for regenerate logic
-        QMessageBox.information(self, "Info", "Regenerate feature coming soon.")
 
-    def on_load_prompt_clicked(self):
-        # Placeholder for load prompt logic
-        QMessageBox.information(self, "Info", "Load Last Prompt feature coming soon.")
