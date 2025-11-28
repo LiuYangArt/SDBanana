@@ -6,31 +6,18 @@
 - 在Settings页面填入API。目前只在yunwu/gptgod跑通，google 官方的API我这边没有条件测。
   [yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc)
 
+## 插件下载
+[https://github.com/LiuYangArt/SDBanana/blob/main/Addon/SDBanana.zip](https://github.com/LiuYangArt/SDBanana/blob/main/Addon/SDBanana.zip)
+
 ## 项目简介
 
 SDBanana 是一个 Substance 3D Designer 插件，允许用户直接在 Designer 中使用 AI 图像生成功能。该插件支持多个 API 提供商，包括 GPTGod NanoBanana Pro 和 Yunwu Gemini。
 
 ## 功能特性
 
-### 当前版本 (v0.1.0)
+- 选中sd节点时把节点作为生图输入
+- 不选中节点时则只根据prompt 文生图
 
-- ✅ 插件基础框架
-- ✅ 带有 Tab 切换的 UI 面板
-- ✅ 图像生成界面（占位 UI）
-  - Prompt 输入框
-  - 图像尺寸选择
-  - Generate 按钮
-- ✅ 设置界面（占位 UI）
-  - API Provider 选择
-  - API 配置输入
-
-### 计划功能
-
-- 🔲 实际的 API 调用功能
-- 🔲 图像生成和导入到 Designer
-- 🔲 设置持久化保存
-- 🔲 生成历史记录
-- 🔲 更多图像参数设置
 
 ## 安装说明
 
@@ -41,15 +28,7 @@ SDBanana 是一个 Substance 3D Designer 插件，允许用户直接在 Designer
    C:\Users\<username>\Documents\Adobe\Adobe Substance 3D Designer\python\plugins
    ```
 
-   macOS:
-   ```
-   ~/Documents/Adobe/Adobe Substance 3D Designer/python/plugins
-   ```
 
-   Linux:
-   ```
-   ~/Documents/Adobe/Adobe Substance 3D Designer/python/plugins
-   ```
 
 2. **复制插件文件**
 
@@ -63,7 +42,7 @@ SDBanana 是一个 Substance 3D Designer 插件，允许用户直接在 Designer
 
 1. **打开插件面板**
    - 启动 Substance 3D Designer
-   - 在 `Window` 菜单中找到 `SD Banana - AI Image Generation`
+   - 在 `Window` 菜单中找到 `SD Banana`
    - 点击打开面板
 
 2. **配置 API 设置**
