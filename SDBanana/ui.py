@@ -301,7 +301,7 @@ class SDBananaPanel(QWidget):
         # Test Import Button
         self.test_import_btn = QPushButton("Test Import Last Generated Image")
         self.test_import_btn.clicked.connect(self.on_test_import_clicked)
-        self.test_import_btn.setVisible(self.current_settings.get("debug_mode", False))
+        # Always visible for easy testing
         layout.addWidget(self.test_import_btn)
 
         # Export Selected Nodes Button
@@ -633,8 +633,7 @@ class SDBananaPanel(QWidget):
         self.settings_manager.set("debug_mode", is_checked)
 
         # Toggle visibility of debug buttons
-        if hasattr(self, "test_import_btn"):
-            self.test_import_btn.setVisible(is_checked)
+        # test_import_btn is always visible now
         if hasattr(self, "export_nodes_btn"):
             self.export_nodes_btn.setVisible(is_checked)
 
