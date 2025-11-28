@@ -489,6 +489,13 @@ class SDBananaPanel(QWidget):
             QComboBox::drop-down {
                 width: 0px;
                 border: none;
+                background: transparent;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border: none;
+                width: 0px;
+                height: 0px;
             }
         """
 
