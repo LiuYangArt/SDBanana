@@ -12,12 +12,13 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QMessageBox,
     QInputDialog,
+    QFileDialog,
 )
 from PySide6.QtCore import QThread, Signal
 from .providers import ProviderManager
 from .presets import PresetManager
 from .generator import ImageGenerator
-from .importer import ImageImporter
+from .importer import ImageImporter, detect_image_format, is_image_grayscale_quick, is_png_rgb_equal_full
 from .exporter import NodeExporter
 from .settings import SettingsManager
 import os
@@ -269,6 +270,7 @@ class SDBananaPanel(QWidget):
         self.generate_button.clicked.connect(self.on_generate_clicked)
         gen_layout.addWidget(self.generate_button, 2)
 
+
         # Regenerate and Load Last Prompt buttons removed
 
         layout.addWidget(gen_group)
@@ -325,6 +327,26 @@ class SDBananaPanel(QWidget):
         )
         self.test_import_btn.clicked.connect(self.on_test_import_clicked)
         test_import_layout.addWidget(self.test_import_btn)
+
+        # Select File Import Button
+        self.test_import_pick_btn = QPushButton("📂 选择文件导入")
+        self.test_import_pick_btn.setMinimumHeight(35)
+        self.test_import_pick_btn.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #2d5a2d;
+                color: #ffffff;
+                border: none;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 12px;
+            }
+            QPushButton:hover { background-color: #3a6f3a; }
+            QPushButton:pressed { background-color: #234523; }
+            """
+        )
+        self.test_import_pick_btn.clicked.connect(self.on_test_import_pick_clicked)
+        test_import_layout.addWidget(self.test_import_pick_btn)
         
         # Resolution selector for test import
         test_res_group = QWidget()
@@ -346,7 +368,7 @@ class SDBananaPanel(QWidget):
         
         # Hide test import button and options for production
         test_import_group.setVisible(False)
-        # layout.addWidget(test_import_group)  # Commented out to completely remove from layout
+        layout.addWidget(test_import_group)
 
         # Export Selected Nodes Button
         self.export_nodes_btn = QPushButton("Export Selected Nodes (WebP)")
@@ -807,7 +829,7 @@ class SDBananaPanel(QWidget):
             if success and result:
                 # result is a list of file paths
                 input_image_path = result[0]  # Use the first exported image
-                print(f"DEBUG: Using input image: {input_image_path}")
+
                 # Compute center position of selected nodes for insert
                 try:
                     positions = []
@@ -831,9 +853,9 @@ class SDBananaPanel(QWidget):
                     center_x += offset_x
                     center_y += offset_y
                     self.insert_position_for_next_import = (center_x, center_y)
-                    print(f"DEBUG: Computed insert position: {self.insert_position_for_next_import}")
+
                 except Exception as e:
-                    print(f"DEBUG: Failed to compute selection center: {e}")
+                    pass
                     self.insert_position_for_next_import = None
             else:
                 # Export failed, ask user if they want to continue with text-to-image
@@ -892,15 +914,15 @@ class SDBananaPanel(QWidget):
                     if os.path.exists(result):
                         os.remove(result)
                 except Exception as e:
-                    print(f"Error deleting generated image: {e}")
+                    pass
 
             # Cleanup Input Image (Always cleanup temp export)
             if input_image_path and os.path.exists(input_image_path):
                 try:
                     os.remove(input_image_path)
-                    print(f"DEBUG: Deleted temp input image: {input_image_path}")
+
                 except Exception as e:
-                    print(f"Error deleting temp input image: {e}")
+                    pass
 
             # Show simple success message
             if import_success:
@@ -934,6 +956,12 @@ class SDBananaPanel(QWidget):
         images.sort(key=os.path.getmtime, reverse=True)
         latest_image = images[0]
 
+        fmt = detect_image_format(latest_image)
+
+        is_gray = is_image_grayscale_quick(latest_image)
+
+
+
         # Get test resolution from combo box
         test_resolution = self.test_res_combo.currentText()
 
@@ -950,6 +978,31 @@ class SDBananaPanel(QWidget):
             )
         else:
             QMessageBox.critical(self, "Error", f"Import failed:\n{msg}")
+
+    def on_test_import_pick_clicked(self):
+        """选择任意本地图片并导入 Bitmap 节点，打印快速与完整灰度判定"""
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(self, "选择图片", os.path.expanduser("~"), "Images (*.png *.jpg *.jpeg *.webp *.bmp)")
+            if not file_path:
+
+                return
+
+            fmt = detect_image_format(file_path)
+
+            quick = is_image_grayscale_quick(file_path)
+
+            if fmt == 'png':
+                full = is_png_rgb_equal_full(file_path)
+
+            resolution = self.res_combo.currentText() if hasattr(self, 'res_combo') else "1K"
+            success, msg = self.importer.import_image(file_path, create_bitmap_node=True, resolution=resolution, aspect_ratio="1:1")
+
+            if success:
+                QMessageBox.information(self, "选择文件导入", "导入成功并创建 Bitmap 节点。")
+            else:
+                QMessageBox.warning(self, "选择文件导入", str(msg))
+        except Exception as e:
+            pass
 
     def on_export_nodes_clicked(self):
         """Handler for Export Selected Nodes button"""
