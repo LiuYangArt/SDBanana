@@ -15,7 +15,19 @@ class ImageGenerator:
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-    def generate_image(self, prompt, provider_name, resolution="1K", search_web=False, debug_mode=False):
+    def _convert_image_to_base64(self, image_path):
+        """Convert an image file to a base64 string."""
+        if not os.path.exists(image_path):
+            return None
+        
+        try:
+            with open(image_path, "rb") as image_file:
+                return base64.b64encode(image_file.read()).decode('utf-8')
+        except Exception as e:
+            print(f"Error converting image to base64: {e}")
+            return None
+
+    def generate_image(self, prompt, provider_name, resolution="1K", search_web=False, debug_mode=False, input_image_path=None):
         provider = self.provider_manager.get_provider(provider_name)
         if not provider:
             return False, "Provider not found."
@@ -36,6 +48,19 @@ class ImageGenerator:
             "Content-Type": "application/json"
         }
 
+        # Prepare Image Data if input_image_path is provided
+        base64_image = None
+        mime_type = "image/png" # Default
+        if input_image_path:
+            base64_image = self._convert_image_to_base64(input_image_path)
+            if not base64_image:
+                return False, f"Failed to process input image: {input_image_path}"
+            
+            if input_image_path.lower().endswith(".webp"):
+                mime_type = "image/webp"
+            elif input_image_path.lower().endswith(".jpg") or input_image_path.lower().endswith(".jpeg"):
+                mime_type = "image/jpeg"
+
         if is_gptgod:
             # GPTGod / OpenAI Format
             api_url = base_url
@@ -49,7 +74,17 @@ class ImageGenerator:
                 elif resolution == "4K":
                     actual_model = "gemini-3-pro-image-preview-4k"
             
-            messages = [{"role": "user", "content": prompt}]
+            content_list = [{"type": "text", "text": prompt}]
+            
+            if base64_image:
+                content_list.append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:{mime_type};base64,{base64_image}"
+                    }
+                })
+
+            messages = [{"role": "user", "content": content_list}]
             
             # TODO: Add Search Web tool if supported by GPTGod in this format?
             # Usually OpenAI format doesn't support 'tools' in the same way for image gen unless it's chat completion.
@@ -80,9 +115,18 @@ class ImageGenerator:
             if resolution:
                 generation_config["imageConfig"]["imageSize"] = resolution
 
+            parts = [{"text": prompt}]
+            if base64_image:
+                parts.append({
+                    "inline_data": {
+                        "mime_type": mime_type,
+                        "data": base64_image
+                    }
+                })
+
             payload = {
                 "contents": [{
-                    "parts": [{"text": prompt}]
+                    "parts": parts
                 }],
                 "generationConfig": generation_config
             }
@@ -94,8 +138,33 @@ class ImageGenerator:
         if debug_mode:
             print(f"--- DEBUG ---")
             print(f"URL: {api_url}")
-            print(f"Payload: {json.dumps(payload, indent=2)}")
+            # Truncate base64 for console logging
+            log_payload = json.loads(json.dumps(payload))
+            if is_gptgod:
+                if len(log_payload["messages"][0]["content"]) > 1:
+                     if isinstance(log_payload["messages"][0]["content"], list) and len(log_payload["messages"][0]["content"]) > 1:
+                        if "image_url" in log_payload["messages"][0]["content"][1]:
+                            log_payload["messages"][0]["content"][1]["image_url"]["url"] = "<BASE64_IMAGE_DATA>"
+            else:
+                if "contents" in log_payload and log_payload["contents"]:
+                    parts = log_payload["contents"][0].get("parts", [])
+                    if len(parts) > 1:
+                        if "inline_data" in parts[1]:
+                            parts[1]["inline_data"]["data"] = "<BASE64_IMAGE_DATA>"
+            
+            print(f"Payload: {json.dumps(log_payload, indent=2)}")
             print(f"-------------")
+
+            # Save full payload to file
+            try:
+                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                log_filename = f"debug_payload_{timestamp}.json"
+                log_path = os.path.join(self.output_dir, log_filename)
+                with open(log_path, "w", encoding="utf-8") as f:
+                    json.dump(payload, f, indent=4, ensure_ascii=False)
+                print(f"Debug payload saved to: {log_path}")
+            except Exception as e:
+                print(f"Failed to save debug payload: {e}")
 
         # Execute Request
         try:
@@ -113,7 +182,7 @@ class ImageGenerator:
                 
                 if debug_mode:
                     print(f"Response: {json.dumps(response_json, indent=2)}")
-
+                
                 # Parse Response and Save Image
                 return self._process_response(response_json, is_gptgod)
 

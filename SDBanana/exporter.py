@@ -77,6 +77,8 @@ class NodeExporter:
             exported_count = 0
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             
+            exported_files = []
+            
             for node in selected_nodes:
                 node_id = node.getIdentifier()
                 print(f"DEBUG: Processing node: {node_id}")
@@ -110,6 +112,7 @@ class NodeExporter:
                                 if os.path.exists(target_path) and os.path.getsize(target_path) > 0:
                                     direct_save_success = True
                                     exported_count += 1
+                                    exported_files.append(target_path)
                                     print("DEBUG: Direct WebP save successful.")
                                 else:
                                     print("DEBUG: Direct WebP save failed (file empty or missing).")
@@ -129,6 +132,7 @@ class NodeExporter:
                                     if PIL_AVAILABLE:
                                         if self.convert_to_webp(temp_path, target_path):
                                             exported_count += 1
+                                            exported_files.append(target_path)
                                             # Remove temp PNG
                                             try:
                                                 os.remove(temp_path)
@@ -137,8 +141,10 @@ class NodeExporter:
                                         else:
                                             # Keep PNG if conversion fails
                                             exported_count += 1
+                                            exported_files.append(temp_path)
                                     else:
                                         exported_count += 1
+                                        exported_files.append(temp_path)
                                 except Exception as e:
                                     print(f"DEBUG: Fallback export failed: {e}")
 
@@ -148,8 +154,7 @@ class NodeExporter:
                         print(f"DEBUG: Property {prop_id} value is not SDValueTexture: {type(value)}")
 
             if exported_count > 0:
-                format_msg = "WebP" if PIL_AVAILABLE else "PNG (PIL not installed)"
-                return True, f"Successfully exported {exported_count} images as {format_msg} to {self.output_dir}"
+                return True, exported_files
             else:
                 print("DEBUG: Export failed - exported_count is 0")
                 return False, "Export failed: No images were generated."

@@ -606,6 +606,32 @@ class SDBananaPanel(QWidget):
             QMessageBox.warning(self, "Warning", "Please select a provider.")
             return
 
+        self.status_label.setText("Checking selection...")
+        QtWidgets.QApplication.processEvents()
+
+        # Check for selected nodes for Image-to-Image
+        selected_nodes = self.exporter.get_selected_nodes()
+        input_image_path = None
+        
+        if selected_nodes:
+            self.status_label.setText("Exporting selected node(s)...")
+            QtWidgets.QApplication.processEvents()
+            
+            success, result = self.exporter.export_selected_nodes()
+            if success and result:
+                # result is a list of file paths
+                input_image_path = result[0] # Use the first exported image
+                print(f"DEBUG: Using input image: {input_image_path}")
+            else:
+                # Export failed, ask user if they want to continue with text-to-image
+                reply = QMessageBox.question(self, "Export Failed", 
+                                           f"Failed to export selected node for Image-to-Image:\n{result}\n\nContinue with Text-to-Image generation?",
+                                           QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.No:
+                    self.status_label.setText("Ready")
+                    return
+                # If Yes, input_image_path remains None, proceeds as Text-to-Image
+
         self.status_label.setText("Generating image...")
         self.generate_button.setEnabled(False)
         QtWidgets.QApplication.processEvents()
@@ -615,7 +641,8 @@ class SDBananaPanel(QWidget):
             provider_name,
             resolution=self.res_combo.currentText(),
             search_web=self.chk_search.isChecked(),
-            debug_mode=self.current_settings["debug_mode"]
+            debug_mode=self.current_settings["debug_mode"],
+            input_image_path=input_image_path
         )
         
         self.generate_button.setEnabled(True)
@@ -665,12 +692,14 @@ class SDBananaPanel(QWidget):
 
     def on_export_nodes_clicked(self):
         """Handler for Export Selected Nodes button"""
-        success, msg = self.exporter.export_selected_nodes()
+        success, result = self.exporter.export_selected_nodes()
         
         if success:
+            # result is list of files
+            msg = f"Successfully exported {len(result)} images:\n" + "\n".join(result)
             QMessageBox.information(self, "Success", msg)
         else:
-            QMessageBox.warning(self, "Export Failed", msg)
+            QMessageBox.warning(self, "Export Failed", result)
 
     def on_regenerate_clicked(self):
         # Placeholder for regenerate logic
