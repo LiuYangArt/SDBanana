@@ -18,8 +18,8 @@ class PresetManager:
         else:
             # Default presets
             self.presets = [
-                {"name": "Enhance Details", "prompt": "Enhance the details of this image, make it high resolution, 8k, realistic texture."},
-                {"name": "Remove Background", "prompt": "Remove the background, keep the subject only, white background."}
+                {"name": "Upscale", "prompt": "Upscale to 4K"},
+                {"name": "Make Grunge", "prompt": "生成一张Grunge Noise Alpha图，保持四方连续"}
             ]
             self.save()
 
