@@ -69,10 +69,13 @@ class ImageGenerator:
             # Resolution Handling for GPTGod (Model Switching)
             actual_model = model
             if "gptgod.online" in base_url and model == "gemini-3-pro-image-preview":
-                if resolution == "2K":
+                if resolution == "1K":
+                    actual_model = "gemini-3-pro-image-preview"  # 1K uses base model
+                elif resolution == "2K":
                     actual_model = "gemini-3-pro-image-preview-2k"
                 elif resolution == "4K":
                     actual_model = "gemini-3-pro-image-preview-4k"
+                # If no match, keep original model (fallback)
             
             content_list = [{"type": "text", "text": prompt}]
             
@@ -138,6 +141,12 @@ class ImageGenerator:
         if debug_mode:
             print(f"--- DEBUG MODE ENABLED ---")
             print(f"Output Directory: {self.output_dir}")
+            print(f"Provider: {provider_name}")
+            print(f"Resolution Setting: {resolution}")
+            print(f"Is GPTGod: {is_gptgod}")
+            if is_gptgod:
+                print(f"Original Model: {model}")
+                print(f"Actual Model (after resolution): {actual_model}")
             print(f"URL: {api_url}")
             # Truncate base64 for console logging
             log_payload = json.loads(json.dumps(payload))
