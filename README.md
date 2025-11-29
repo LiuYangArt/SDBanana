@@ -3,7 +3,7 @@
 🍌 一个用于 Substance 3D Designer 的 AI 图像生成插件，通过第三方 API 使用 Google Nano Banana AI 生图。
 
 - 需自行购买第三方api
-- 在Settings页面填入API。目前只在yunwu/gptgod/openrouter测试过，google 官方的API我这边没有条件测。
+- 在Settings页面填入API。目前只在yunwu/gptgod/openrouter测试过，google 官方的API我这边没有条件测。openrouter对ip也有限制。
   [yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc)
 
 ## 插件下载
