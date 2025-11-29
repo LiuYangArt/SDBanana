@@ -1,4 +1,4 @@
-<img width="651" height="150" alt="image" src="https://github.com/user-attachments/assets/145b1693-c7b0-4f74-ba4c-87584802f986" /># SDBanana for Substance 3D Designer
+# SDBanana for Substance 3D Designer
 
 🍌 一个用于 Substance 3D Designer 的 AI 图像生成插件，通过第三方 API 使用 Google Nano Banana AI 生图。
 
@@ -50,7 +50,7 @@ SDBanana 是一个 Substance 3D Designer 插件，允许用户直接在 Designer
    - 输入 API Key
    - Save 保存设置
      <img width="663" height="335" alt="image" src="https://github.com/user-attachments/assets/72d461a9-7739-42df-98b9-1d00971268e4" />
-
+   - 使用yunwu api时需要启用gemini相关的分组以使用gemini生图api<img width="1935" height="151" alt="image" src="https://github.com/user-attachments/assets/c43e9d7e-ccfb-4981-bcc3-4a4db7393806" />
 
 3. **生成图像**
    - 切换到 `Generate` Tab
