@@ -42,6 +42,7 @@ class ImageGenerator:
         # Determine API Type and Construct Payload
         is_gptgod = "gptgod" in provider_name.lower() or "gptgod" in base_url.lower()
         is_openrouter = "openrouter" in provider_name.lower() or "openrouter.ai" in base_url.lower()
+        is_google_official = "generativelanguage.googleapis.com" in base_url.lower() or ("google" in provider_name.lower() and "gemini" in provider_name.lower() and "yunwu" not in provider_name.lower())
         
         payload = {}
         api_url = ""
@@ -103,6 +104,43 @@ class ImageGenerator:
                 "modalities": ["image", "text"],
                 "image_config": image_config
             }
+            
+        elif is_google_official:
+            # Google Official Gemini API (uses snake_case, not camelCase)
+            # URL: .../models/{model}:generateContent?key={key}
+            if base_url.endswith("/"):
+                base_url = base_url[:-1]
+            api_url = f"{base_url}/models/{model}:generateContent?key={api_key}"
+            
+            # Google official API uses snake_case (response_modalities, image_config, aspect_ratio, image_size)
+            generation_config = {
+                "response_modalities": ["IMAGE"],  # Uppercase and snake_case
+                "image_config": {
+                    "aspect_ratio": "1:1"  # snake_case
+                }
+            }
+            
+            if resolution:
+                generation_config["image_config"]["image_size"] = resolution  # snake_case
+
+            parts = [{"text": prompt}]
+            if base64_image:
+                parts.append({
+                    "inline_data": {
+                        "mime_type": mime_type,
+                        "data": base64_image
+                    }
+                })
+
+            payload = {
+                "contents": [{
+                    "parts": parts
+                }],
+                "generationConfig": generation_config  # Still uses camelCase for top-level key
+            }
+            
+            if search_web:
+                payload["tools"] = [{"google_search": {}}]
             
         elif is_gptgod:
             # GPTGod / OpenAI Format
@@ -188,6 +226,7 @@ class ImageGenerator:
             print(f"Resolution Setting: {resolution}")
             print(f"Is GPTGod: {is_gptgod}")
             print(f"Is OpenRouter: {is_openrouter}")
+            print(f"Is Google Official: {is_google_official}")
             if is_gptgod:
                 print(f"Original Model: {model}")
                 print(f"Actual Model (after resolution): {actual_model}")
@@ -240,14 +279,14 @@ class ImageGenerator:
                     print(f"Response: {json.dumps(response_json, indent=2)}")
                 
                 # Parse Response and Save Image
-                return self._process_response(response_json, is_gptgod, is_openrouter)
+                return self._process_response(response_json, is_gptgod, is_openrouter, is_google_official)
 
         except urllib.error.HTTPError as e:
             return False, f"HTTP Error: {e.code} - {e.reason}"
         except Exception as e:
             return False, f"Error: {str(e)}"
 
-    def _process_response(self, response_json, is_gptgod, is_openrouter=False):
+    def _process_response(self, response_json, is_gptgod, is_openrouter=False, is_google_official=False):
         image_data = None
         image_url = None
 
@@ -291,7 +330,8 @@ class ImageGenerator:
                     if match:
                         image_url = match.group(1)
         else:
-            # Gemini
+            # Gemini Format (Google Official or Yunwu/Third-party proxies)
+            # Response format is the same: candidates[0].content.parts[].inlineData.data
             if "candidates" in response_json and response_json["candidates"]:
                 parts = response_json["candidates"][0]["content"]["parts"]
                 for part in parts:

@@ -22,6 +22,12 @@ class ProviderManager:
             # Default providers if file doesn't exist
             self.providers = [
                 {
+                    "name": "Google Gemini",
+                    "apiKey": "",
+                    "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+                    "model": "models/gemini-3-pro-image-preview"
+                },
+                {
                     "name": "Yunwu Gemini",
                     "apiKey": "",
                     "baseUrl": "https://yunwu.zeabur.app/v1beta",
