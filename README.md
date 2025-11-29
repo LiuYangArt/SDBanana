@@ -55,6 +55,11 @@ SDBanana 是一个 Substance 3D Designer 插件，允许用户直接在 Designer
    - 切换到 `Generate` Tab
    - 在 Prompt 输入框中输入描述
    - 选择图像尺寸
-   - 点击 `Generate Image`（当前为占位功能）
+   - 点击 `Generate Image`
+   - 选中sd节点时把节点作为生图输入
+   - 不选中节点时则只根据prompt 文生图
+  
+<img width="1845" height="1662" alt="image" src="https://github.com/user-attachments/assets/84bd147e-fd86-4f8c-932d-5cdf0202e056" />
+
 
 
