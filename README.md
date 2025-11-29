@@ -49,7 +49,7 @@ SDBanana 是一个 Substance 3D Designer 插件，允许用户直接在 Designer
    - 切换到 `Settings` Tab
    - 选择你的 API Provider,目前支持google官方api，openrouter，yunwu，gptgod
    - 输入 API Key
-   - 保存设置
+   - Save 保存设置
 
 3. **生成图像**
    - 切换到 `Generate` Tab
