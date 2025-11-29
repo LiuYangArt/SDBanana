@@ -3,7 +3,7 @@
 🍌 一个用于 Substance 3D Designer 的 AI 图像生成插件，通过第三方 API 使用 Google Nano Banana AI 生图。
 
 - 需自行购买第三方api
-- 在Settings页面填入API。目前只在yunwu/gptgod跑通，google 官方的API我这边没有条件测。
+- 在Settings页面填入API。目前只在yunwu/gptgod/openrouter测试过，google 官方的API我这边没有条件测。
   [yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc)
 
 ## 插件下载
@@ -47,11 +47,9 @@ SDBanana 是一个 Substance 3D Designer 插件，允许用户直接在 Designer
 
 2. **配置 API 设置**
    - 切换到 `Settings` Tab
-   - 选择你的 API Provider
-   - 输入 API Base URL
+   - 选择你的 API Provider,目前支持google官方api，openrouter，yunwu，gptgod
    - 输入 API Key
-   - 输入 Model 名称
-   - 点击 `Save Settings`（当前为占位功能）
+   - 保存设置
 
 3. **生成图像**
    - 切换到 `Generate` Tab
