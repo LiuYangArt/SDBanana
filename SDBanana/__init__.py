@@ -1,6 +1,8 @@
 ##########################################################################
 # SDBanana Plugin for Substance 3D Designer
 # AI Image Generation using Nano Banana API
+# Author: LiuYang 
+# https://github.com/LiuYangArt/SDBanana
 ##########################################################################
 
 # 首先导入 SD API 模块

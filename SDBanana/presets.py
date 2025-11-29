@@ -19,6 +19,7 @@ class PresetManager:
             # Default presets
             self.presets = [
                 {"name": "Upscale", "prompt": "Upscale to 4K"},
+                {"name": "Edge Wear", "prompt": "为这张高度图添加边缘破损，保持四方连续"},
                 {"name": "Make Grunge", "prompt": "生成一张Grunge Noise Alpha图，保持四方连续"}
             ]
             self.save()
