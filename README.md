@@ -60,6 +60,8 @@ SDBanana 是一个 Substance 3D Designer 插件，允许用户直接在 Designer
    - 不选中节点时则只根据prompt 文生图
   
 <img width="1845" height="1662" alt="image" src="https://github.com/user-attachments/assets/84bd147e-fd86-4f8c-932d-5cdf0202e056" />
+<img width="2001" height="895" alt="image" src="https://github.com/user-attachments/assets/b9e519b9-bf82-4746-8296-f975f76a6f84" />
+
 
 
 
