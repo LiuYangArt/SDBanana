@@ -1,4 +1,5 @@
 # SDBanana for Substance 3D Designer
+<img width="512" height="512" alt="sdbanana" src="https://github.com/user-attachments/assets/452fdd1c-6f90-4391-a1d4-4f4fa48237b0" />
 
 🍌 一个用于 Substance 3D Designer 的 AI 图像生成插件，通过第三方 API 使用 Google Nano Banana AI 生图。
 
