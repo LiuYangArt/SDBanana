@@ -18,7 +18,12 @@ from PySide6.QtCore import QThread, Signal
 from .providers import ProviderManager
 from .presets import PresetManager
 from .generator import ImageGenerator
-from .importer import ImageImporter, detect_image_format, is_image_grayscale_quick, is_png_rgb_equal_full
+from .importer import (
+    ImageImporter,
+    detect_image_format,
+    is_image_grayscale_quick,
+    is_png_rgb_equal_full,
+)
 from .exporter import NodeExporter
 from .settings import SettingsManager
 import os
@@ -40,6 +45,7 @@ class GenerationWorker(QThread):
         search_web,
         debug_mode,
         input_image_path,
+        insert_position=None,
     ):
         super().__init__()
         self.generator = generator
@@ -49,6 +55,7 @@ class GenerationWorker(QThread):
         self.search_web = search_web
         self.debug_mode = debug_mode
         self.input_image_path = input_image_path
+        self.insert_position = insert_position
 
     def run(self):
         try:
@@ -81,6 +88,7 @@ class SDBananaPanel(QWidget):
 
         self.settings_manager = SettingsManager()
         self.current_settings = self.settings_manager.settings
+        self.active_workers = []
         self.init_ui()
 
     def init_ui(self):
@@ -270,7 +278,6 @@ class SDBananaPanel(QWidget):
         self.generate_button.clicked.connect(self.on_generate_clicked)
         gen_layout.addWidget(self.generate_button, 2)
 
-
         # Regenerate and Load Last Prompt buttons removed
 
         layout.addWidget(gen_group)
@@ -304,7 +311,7 @@ class SDBananaPanel(QWidget):
         test_import_group = QWidget()
         test_import_layout = QVBoxLayout(test_import_group)
         test_import_layout.setContentsMargins(0, 10, 0, 0)
-        
+
         self.test_import_btn = QPushButton("🔄 Test Import Last Generated Image")
         self.test_import_btn.setMinimumHeight(35)
         self.test_import_btn.setStyleSheet(
@@ -347,25 +354,25 @@ class SDBananaPanel(QWidget):
         )
         self.test_import_pick_btn.clicked.connect(self.on_test_import_pick_clicked)
         test_import_layout.addWidget(self.test_import_pick_btn)
-        
+
         # Resolution selector for test import
         test_res_group = QWidget()
         test_res_layout = QHBoxLayout(test_res_group)
         test_res_layout.setContentsMargins(0, 5, 0, 0)
-        
+
         test_res_label = QLabel("Test Import Resolution:")
         test_res_label.setStyleSheet("color: #888888; font-size: 11px;")
         test_res_layout.addWidget(test_res_label)
-        
+
         self.test_res_combo = QComboBox()
         self.test_res_combo.addItems(["1K", "2K", "4K"])
         self.test_res_combo.setCurrentIndex(0)
         self.test_res_combo.setStyleSheet(self._get_combo_style())
         test_res_layout.addWidget(self.test_res_combo)
-        
+
         test_res_layout.addStretch()
         test_import_layout.addWidget(test_res_group)
-        
+
         # Hide test import button and options for production
         test_import_group.setVisible(False)
         layout.addWidget(test_import_group)
@@ -839,9 +846,11 @@ class SDBananaPanel(QWidget):
                         y = getattr(pos, "y", None)
                         if x is None or y is None:
                             try:
-                                x = pos[0]; y = pos[1]
+                                x = pos[0]
+                                y = pos[1]
                             except Exception:
-                                x = 0; y = 0
+                                x = 0
+                                y = 0
                         positions.append((x, y))
                     xs = [p[0] for p in positions]
                     ys = [p[1] for p in positions]
@@ -872,12 +881,15 @@ class SDBananaPanel(QWidget):
                 # If Yes, input_image_path remains None, proceeds as Text-to-Image
                 self.insert_position_for_next_import = None
 
-        self.status_label.setText("Generating image (Async)...")
-        self.generate_button.setEnabled(False)
-        self.generate_button.setText("⏳ Generating...")
+        self.status_label.setText(
+            f"Generating image (Queue: {len(self.active_workers) + 1})..."
+        )
+
+        # Determine effective insert position
+        insert_pos = getattr(self, "insert_position_for_next_import", None)
 
         # Create and start worker
-        self.worker = GenerationWorker(
+        worker = GenerationWorker(
             self.image_generator,
             prompt,
             provider_name,
@@ -885,27 +897,51 @@ class SDBananaPanel(QWidget):
             search_web=False,
             debug_mode=self.chk_debug.isChecked(),
             input_image_path=input_image_path,
+            insert_position=insert_pos,
         )
-        self.worker.finished.connect(self.on_generation_finished)
-        self.worker.start()
 
-    def on_generation_finished(self, success, result):
+        # Use a default argument in lambda to capture the specific worker instance
+        worker.finished.connect(
+            lambda s, r, w=worker: self.on_generation_finished(s, r, w)
+        )
+
+        self.active_workers.append(worker)
+        self.update_generate_button_text()
+
+        worker.start()
+
+    def update_generate_button_text(self):
+        count = len(self.active_workers)
+        if count > 0:
+            self.generate_button.setText(f"Generating {count} image(s)...")
+            # Do NOT disable the button, allow more clicks
+        else:
+            self.generate_button.setText("🎨 Generate Image")
+            self.status_label.setText("Ready")
+
+    def on_generation_finished(self, success, result, worker):
         """Handle completion of image generation"""
-        self.generate_button.setEnabled(True)
-        self.generate_button.setText("🎨 Generate Image")
-        self.status_label.setText("Ready")
+
+        if worker in self.active_workers:
+            self.active_workers.remove(worker)
+
+        self.update_generate_button_text()
 
         # Retrieve input_image_path from the worker to clean it up if needed
-        input_image_path = self.worker.input_image_path
+        input_image_path = worker.input_image_path
 
         if success:
             # Import to SD
-            current_resolution = self.res_combo.currentText()
+            # Use resolution store in worker, or current combo?
+            # Ideally worker uses its own resolution to match generation.
+            # But the worker stores 'resolution' which was passed to generate_image.
+            current_resolution = worker.resolution
+
             import_success, import_msg = self.importer.import_image(
-                result, 
-                insert_position=getattr(self, "insert_position_for_next_import", None),
+                result,
+                insert_position=worker.insert_position,
                 resolution=current_resolution,
-                aspect_ratio="1:1"  # Currently hardcoded, can be extended later
+                aspect_ratio="1:1",  # Currently hardcoded, can be extended later
             )
 
             # Cleanup Generated Image if "Save Generated Images" is False
@@ -960,21 +996,19 @@ class SDBananaPanel(QWidget):
 
         is_gray = is_image_grayscale_quick(latest_image)
 
-
-
         # Get test resolution from combo box
         test_resolution = self.test_res_combo.currentText()
 
         # Import it with specified resolution
         success, msg = self.importer.import_image(
-            latest_image,
-            resolution=test_resolution,
-            aspect_ratio="1:1"
+            latest_image, resolution=test_resolution, aspect_ratio="1:1"
         )
 
         if success:
             QMessageBox.information(
-                self, "Success", f"Imported with {test_resolution} resolution:\n{latest_image}\n\n{msg}"
+                self,
+                "Success",
+                f"Imported with {test_resolution} resolution:\n{latest_image}\n\n{msg}",
             )
         else:
             QMessageBox.critical(self, "Error", f"Import failed:\n{msg}")
@@ -982,7 +1016,12 @@ class SDBananaPanel(QWidget):
     def on_test_import_pick_clicked(self):
         """选择任意本地图片并导入 Bitmap 节点，打印快速与完整灰度判定"""
         try:
-            file_path, _ = QFileDialog.getOpenFileName(self, "选择图片", os.path.expanduser("~"), "Images (*.png *.jpg *.jpeg *.webp *.bmp)")
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "选择图片",
+                os.path.expanduser("~"),
+                "Images (*.png *.jpg *.jpeg *.webp *.bmp)",
+            )
             if not file_path:
 
                 return
@@ -991,14 +1030,23 @@ class SDBananaPanel(QWidget):
 
             quick = is_image_grayscale_quick(file_path)
 
-            if fmt == 'png':
+            if fmt == "png":
                 full = is_png_rgb_equal_full(file_path)
 
-            resolution = self.res_combo.currentText() if hasattr(self, 'res_combo') else "1K"
-            success, msg = self.importer.import_image(file_path, create_bitmap_node=True, resolution=resolution, aspect_ratio="1:1")
+            resolution = (
+                self.res_combo.currentText() if hasattr(self, "res_combo") else "1K"
+            )
+            success, msg = self.importer.import_image(
+                file_path,
+                create_bitmap_node=True,
+                resolution=resolution,
+                aspect_ratio="1:1",
+            )
 
             if success:
-                QMessageBox.information(self, "选择文件导入", "导入成功并创建 Bitmap 节点。")
+                QMessageBox.information(
+                    self, "选择文件导入", "导入成功并创建 Bitmap 节点。"
+                )
             else:
                 QMessageBox.warning(self, "选择文件导入", str(msg))
         except Exception as e:
