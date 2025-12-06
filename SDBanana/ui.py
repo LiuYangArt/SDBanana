@@ -243,12 +243,12 @@ class SDBananaPanel(QWidget):
         gen_layout = QHBoxLayout(gen_group)
         gen_layout.setContentsMargins(0, 10, 0, 10)
 
-        self.generate_button = QPushButton("🎨 Generate Image")
+        self.generate_button = QPushButton("Generate Image")
         self.generate_button.setMinimumHeight(40)
         self.generate_button.setStyleSheet(
             """
             QPushButton {
-                background-color: #0066cc;
+                background-color: #444444;
                 color: #ffffff;
                 border: none;
                 border-radius: 4px;
@@ -256,12 +256,8 @@ class SDBananaPanel(QWidget):
                 font-size: 14px;
                 font-weight: bold;
             }
-            QPushButton:hover {
-                background-color: #0077ee;
-            }
-            QPushButton:pressed {
-                background-color: #0055aa;
-            }
+            QPushButton:hover { background-color: #555555; }
+            QPushButton:pressed { background-color: #333333; }
             QPushButton:disabled {
                 background-color: #444444;
                 color: #888888;
@@ -907,9 +903,41 @@ class SDBananaPanel(QWidget):
         count = len(self.active_workers)
         if count > 0:
             self.generate_button.setText(f"Generating {count} image(s)...")
+            self.generate_button.setStyleSheet(
+                """
+                QPushButton {
+                    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #9cf026, stop:1 #e3ff43);
+                    color: #363636;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 10px;
+                    font-size: 14px;
+                    font-weight: bold;
+                }
+                """
+            )
             # Do NOT disable the button, allow more clicks
         else:
             self.generate_button.setText("🎨 Generate Image")
+            self.generate_button.setStyleSheet(
+                """
+                QPushButton {
+                    background-color: #444444;
+                    color: #ffffff;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 10px;
+                    font-size: 14px;
+                    font-weight: bold;
+                }
+                QPushButton:hover { background-color: #555555; }
+                QPushButton:pressed { background-color: #333333; }
+                QPushButton:disabled {
+                    background-color: #444444;
+                    color: #888888;
+                }
+                """
+            )
             self.status_label.setText("Ready")
 
     def on_generation_finished(self, success, result, worker):
