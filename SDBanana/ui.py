@@ -96,20 +96,6 @@ class SDBananaPanel(QWidget):
         # Main Layout
         main_layout = QVBoxLayout()
 
-        # Title
-        title_label = QLabel("🍌 SD Banana by LiuYang")
-        title_label.setStyleSheet(
-            """
-            QLabel {
-                font-size: 16px;
-                font-weight: bold;
-                padding: 10px;
-                background-color: #2b2b2b;
-                color: #ffffff;
-            }
-        """
-        )
-        main_layout.addWidget(title_label)
 
         # Tabs
         self.tab_widget = QTabWidget()
@@ -144,6 +130,13 @@ class SDBananaPanel(QWidget):
         self.tab_widget.addTab(tab2, "Settings")
 
         main_layout.addWidget(self.tab_widget)
+
+        # Footer: version/info label
+        footer_label = QLabel("🍌 SD Banana V1.0.2 by LiuYang")
+        footer_label.setStyleSheet(
+            "color: #888888; font-size: 10px; padding: 4px;"
+        )
+        main_layout.addWidget(footer_label, alignment=QtCore.Qt.AlignRight)
 
         self.setLayout(main_layout)
         self.setMinimumSize(450, 650)
