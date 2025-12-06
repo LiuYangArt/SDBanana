@@ -436,27 +436,36 @@ class SDBananaPanel(QWidget):
         self.btn_add.setFixedWidth(30)
         self.btn_add.setStyleSheet(btn_style)
         self.btn_add.clicked.connect(self.on_add_provider)
-        provider_layout.addWidget(self.btn_add)
+
 
         self.btn_save = QPushButton("Save")
         self.btn_save.setFixedWidth(50)
         self.btn_save.setStyleSheet(btn_style)
         self.btn_save.clicked.connect(self.on_save_provider)
-        provider_layout.addWidget(self.btn_save)
+
 
         self.btn_del = QPushButton("Del")
         self.btn_del.setFixedWidth(40)
         self.btn_del.setStyleSheet(btn_style)
         self.btn_del.clicked.connect(self.on_delete_provider)
-        provider_layout.addWidget(self.btn_del)
+
 
         layout.addWidget(provider_group)
 
-        # Test Connection Button (Separate row for better visibility)
+        # Test Connection and Actions Row
         self.btn_test = QPushButton("Test Connection")
         self.btn_test.setStyleSheet(btn_style)
         self.btn_test.clicked.connect(self.on_test_connection)
-        layout.addWidget(self.btn_test)
+
+        actions_row = QWidget()
+        actions_layout = QHBoxLayout(actions_row)
+        actions_layout.setContentsMargins(0, 5, 0, 0)
+        actions_layout.addWidget(self.btn_add)
+        actions_layout.addWidget(self.btn_save)
+        actions_layout.addWidget(self.btn_del)
+        actions_layout.addStretch()
+        actions_layout.addWidget(self.btn_test)
+        layout.addWidget(actions_row)
 
         # --- Fields ---
         # API Key
@@ -918,7 +927,7 @@ class SDBananaPanel(QWidget):
             )
             # Do NOT disable the button, allow more clicks
         else:
-            self.generate_button.setText("🎨 Generate Image")
+            self.generate_button.setText("Generate Image")
             self.generate_button.setStyleSheet(
                 """
                 QPushButton {
