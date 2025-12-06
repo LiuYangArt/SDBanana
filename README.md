@@ -1,7 +1,7 @@
 # SDBanana for Substance 3D Designer
 <img width="512" height="512" alt="sdbanana" src="https://github.com/user-attachments/assets/452fdd1c-6f90-4391-a1d4-4f4fa48237b0" />
 
-🍌 一个用于 Substance 3D Designer 的 AI 图像生成插件，通过第三方 API 使用 Google Nano Banana AI 生图。
+🍌 一个用于 Substance 3D Designer 的 AI 图像生成插件，通过第三方 API 使用 Google nano banana pro AI 生图。
 
 - 需自行购买第三方api
 - 在Settings页面填入API。目前只在yunwu/gptgod测试过，google 官方的API我这边没有条件测。
@@ -71,7 +71,7 @@
 
 # SDBanana for Substance 3D Designer
 
-🍌 An AI image generation plugin for Substance 3D Designer, leveraging third-party APIs to generate images using Google Nano Banana AI.
+🍌 An AI image generation plugin for Substance 3D Designer, leveraging third-party APIs to generate images using Google nano banana pro AI.
 
 - You need to purchase a third-party API key yourself.
 - Enter the API key on the Settings page. Currently, it has only been tested with yunwu/gptgod. I don't have the conditions to test Google's official API.
