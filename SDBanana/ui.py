@@ -139,7 +139,7 @@ class SDBananaPanel(QWidget):
         main_layout.addWidget(footer_label, alignment=QtCore.Qt.AlignRight)
 
         self.setLayout(main_layout)
-        self.setMinimumSize(450, 540)
+        self.setMinimumSize(400, 500)
 
     def create_generation_tab(self):
         """Create Generation Tab"""
@@ -540,7 +540,7 @@ class SDBananaPanel(QWidget):
         layout.addWidget(self.chk_save_images)
 
         # Spacer
-        layout.addSpacing(8)
+        layout.addStretch()
 
         # Populate Providers
         self.refresh_providers_ui()
