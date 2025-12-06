@@ -139,7 +139,7 @@ class SDBananaPanel(QWidget):
         main_layout.addWidget(footer_label, alignment=QtCore.Qt.AlignRight)
 
         self.setLayout(main_layout)
-        self.setMinimumSize(450, 650)
+        self.setMinimumSize(450, 540)
 
     def create_generation_tab(self):
         """Create Generation Tab"""
@@ -210,7 +210,7 @@ class SDBananaPanel(QWidget):
         self.btn_del_preset.clicked.connect(self.on_delete_preset)
         preset_row2_layout.addWidget(self.btn_del_preset)
 
-        preset_row2_layout.addStretch()
+        preset_row2_layout.addSpacing(8)
 
         layout.addWidget(preset_row2)
 
@@ -292,7 +292,7 @@ class SDBananaPanel(QWidget):
 
         # Search Web Toggle removed
 
-        res_layout.addStretch()
+        res_layout.addSpacing(8)
 
         layout.addWidget(res_group)
 
@@ -359,7 +359,7 @@ class SDBananaPanel(QWidget):
         self.test_res_combo.setStyleSheet(self._get_combo_style())
         test_res_layout.addWidget(self.test_res_combo)
 
-        test_res_layout.addStretch()
+        test_res_layout.addSpacing(8)
         test_import_layout.addWidget(test_res_group)
 
         # Hide test import button and options for production
@@ -373,7 +373,7 @@ class SDBananaPanel(QWidget):
         layout.addWidget(self.export_nodes_btn)
 
         # Spacer
-        layout.addStretch()
+        layout.addSpacing(8)
 
         # Status
         self.status_label = QLabel("Ready")
@@ -540,7 +540,7 @@ class SDBananaPanel(QWidget):
         layout.addWidget(self.chk_save_images)
 
         # Spacer
-        layout.addStretch()
+        layout.addSpacing(8)
 
         # Populate Providers
         self.refresh_providers_ui()
@@ -935,7 +935,7 @@ class SDBananaPanel(QWidget):
                     color: #ffffff;
                     border: none;
                     border-radius: 4px;
-                    padding: 10px;
+                    padding: 11px;
                     font-size: 14px;
                     font-weight: bold;
                 }
