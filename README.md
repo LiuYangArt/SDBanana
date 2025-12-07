@@ -1,10 +1,10 @@
 # SDBanana for Substance 3D Designer
 <img width="512" height="512" alt="sdbanana" src="https://github.com/user-attachments/assets/452fdd1c-6f90-4391-a1d4-4f4fa48237b0" />
 
-🍌 一个用于 Substance 3D Designer 的 AI 图像生成插件，通过第三方 API 使用 Google Nano Banana AI 生图。
+🍌 一个用于 Substance 3D Designer 的 AI 图像生成插件，通过第三方 API 使用 Google nano banana pro AI 生图。
 
 - 需自行购买第三方api
-- 在Settings页面填入API。目前只在yunwu/gptgod/openrouter测试过，google 官方的API我这边没有条件测。openrouter对ip也有限制。
+- 在Settings页面填入API。目前只在yunwu/gptgod测试过，google 官方的API我这边没有条件测。
   [yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc)
 
 ## 插件下载
@@ -62,16 +62,19 @@
 <img width="2001" height="895" alt="image" src="https://github.com/user-attachments/assets/b9e519b9-bf82-4746-8296-f975f76a6f84" />
 
 
+## 免责声明
+本插件功能依赖第三方 API 服务。在使用过程中，您的数据（包括但不限于图片、提示词）将被发送至第三方服务器进行处理。开发者不对第三方服务的数据安全性、隐私保护或服务稳定性承担任何责任。请勿上传包含敏感个人信息的内容，使用本插件产生的任何数据泄露风险由用户自行承担。
+
 
 
 ---
 
 # SDBanana for Substance 3D Designer
 
-🍌 An AI image generation plugin for Substance 3D Designer, leveraging third-party APIs to generate images using Google Nano Banana AI.
+🍌 An AI image generation plugin for Substance 3D Designer, leveraging third-party APIs to generate images using Google nano banana pro AI.
 
 - You need to purchase a third-party API key yourself.
-- Enter the API key on the Settings page. Currently, it has only been tested with yunwu/gptgod/openrouter. I don't have the conditions to test Google's official API. Openrouter also has IP restrictions.
+- Enter the API key on the Settings page. Currently, it has only been tested with yunwu/gptgod. I don't have the conditions to test Google's official API.
   [yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc)
 
 ## Plugin Download
@@ -122,3 +125,7 @@
 
 <img width="1845" height="1662" alt="image" src="https://github.com/user-attachments/assets/84bd147e-fd86-4f8c-932d-5cdf0202e056" />
 <img width="2001" height="895" alt="image" src="https://github.com/user-attachments/assets/b9e519b9-bf82-4746-8296-f975f76a6f84" />
+
+
+## Disclaimer
+This plugin relies on third-party API services. Please be aware that your data (including but not limited to images and prompts) will be transmitted to external servers for processing. The developer assumes no liability for data security, privacy leaks, or service stability regarding these third-party providers. Please do not upload sensitive personal information; users assume all risks associated with data privacy when using this plugin.
