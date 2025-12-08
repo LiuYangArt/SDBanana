@@ -66,11 +66,11 @@ class ImageGenerator:
         无缝平铺规则（不可协商）：
         - 避免明显的“热点(hotspot)”，以避免此贴图在10x10平铺时产生网格效果。
         - Details flowing off the right edge must match perfectly with the left edge, same for top and bottom.
-        - 对于砖块/瓷砖图案，灰缝线在边界处必须数学上保持一致。
+        - For brick/tile patterns, grout lines must be mathematically consistent at borders.
         质量保证指南（AAA标准）：
         1. 颜色贴图 (albedo/basecolor)去光照：albedo/basecolor贴图必须只包含颜色数据。不得有烘焙阴影或光照。
         2. 高度图(heightmap)/深度图(depthmap)：如果有参考图输入（input image），根据参考图内容制作符合现实逻辑的高度/深度。
-        3. 视觉层次：包括宏观（形状）、中观（次要形式）和微观（纹理/毛孔）细节。
+        3. 视觉层次：包括宏观Macro（形状）、中观Meso（次要形式）和微观Micro（纹理/毛孔）细节。
         4. 视觉叙事：纹理必须有符合这个物体的使用痕迹，暗示它的历史（例如风化、划痕、氧化、破损、褪色等）。除非另有要求，否则不要制作“原始(pristine)”纹理。
         5. PBR定义：金属度(metallic)贴图清楚区分电介质和导体(dielectrics and conductors)。粗糙度(roughness)的变化是实现真实感的关键。
         """
