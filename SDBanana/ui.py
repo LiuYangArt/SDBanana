@@ -96,7 +96,6 @@ class SDBananaPanel(QWidget):
         # Main Layout
         main_layout = QVBoxLayout()
 
-
         # Tabs
         self.tab_widget = QTabWidget()
         self.tab_widget.setStyleSheet(
@@ -132,10 +131,8 @@ class SDBananaPanel(QWidget):
         main_layout.addWidget(self.tab_widget)
 
         # Footer: version/info label
-        footer_label = QLabel("🍌 SD Banana V1.0.2 by LiuYang")
-        footer_label.setStyleSheet(
-            "color: #888888; font-size: 10px; padding: 4px;"
-        )
+        footer_label = QLabel("🍌 SD Banana V1.1.0 by LiuYang")
+        footer_label.setStyleSheet("color: #888888; font-size: 10px; padding: 4px;")
         main_layout.addWidget(footer_label, alignment=QtCore.Qt.AlignRight)
 
         self.setLayout(main_layout)
@@ -437,18 +434,15 @@ class SDBananaPanel(QWidget):
         self.btn_add.setStyleSheet(btn_style)
         self.btn_add.clicked.connect(self.on_add_provider)
 
-
         self.btn_save = QPushButton("Save")
         self.btn_save.setFixedWidth(50)
         self.btn_save.setStyleSheet(btn_style)
         self.btn_save.clicked.connect(self.on_save_provider)
 
-
         self.btn_del = QPushButton("Del")
         self.btn_del.setFixedWidth(40)
         self.btn_del.setStyleSheet(btn_style)
         self.btn_del.clicked.connect(self.on_delete_provider)
-
 
         layout.addWidget(provider_group)
 
