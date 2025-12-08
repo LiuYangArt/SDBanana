@@ -65,7 +65,7 @@ class ImageGenerator:
         目标：根据用户需求绘制精彩的纹理贴图。 **关键要求：** 所有纹理必须严格是“无缝平铺”（四向连续）。
         无缝平铺规则（不可协商）：
         - 避免明显的“热点(hotspot)”，以避免此贴图在10x10平铺时产生网格效果。
-        - 从右边缘流出的细节必须与左边缘完美匹配。
+        - Details flowing off the right edge must match perfectly with the left edge, same for top and bottom.
         - 对于砖块/瓷砖图案，灰缝线在边界处必须数学上保持一致。
         质量保证指南（AAA标准）：
         1. 颜色贴图 (albedo/basecolor)去光照：albedo/basecolor贴图必须只包含颜色数据。不得有烘焙阴影或光照。
