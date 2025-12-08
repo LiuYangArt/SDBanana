@@ -38,7 +38,9 @@ class ImageGenerator:
         input_image_path=None,
     ):
         # Append seamless tiling instruction
-        prompt = f"{prompt}, seamless tiling, four-sided continuous tiling"
+        system_prompt = r"system instruction: "
+        user_prompt = f"user instruction: {prompt}"
+        prompt = f"{system_prompt}, {user_prompt}"
 
         provider = self.provider_manager.get_provider(provider_name)
         if not provider:

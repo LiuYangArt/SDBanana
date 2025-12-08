@@ -4,6 +4,7 @@ import urllib.request
 import urllib.error
 import ssl
 
+
 class ProviderManager:
     def __init__(self):
         self.config_file = os.path.join(os.path.dirname(__file__), "providers.json")
@@ -13,7 +14,7 @@ class ProviderManager:
     def load(self):
         if os.path.exists(self.config_file):
             try:
-                with open(self.config_file, 'r', encoding='utf-8') as f:
+                with open(self.config_file, "r", encoding="utf-8") as f:
                     self.providers = json.load(f)
             except Exception as e:
                 print(f"Error loading providers: {e}")
@@ -21,36 +22,36 @@ class ProviderManager:
         else:
             # Default providers if file doesn't exist
             self.providers = [
-                {
-                    "name": "Google Gemini",
-                    "apiKey": "",
-                    "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
-                    "model": "models/gemini-3-pro-image-preview"
-                },
+                # {
+                #     "name": "Google Gemini",
+                #     "apiKey": "",
+                #     "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+                #     "model": "models/gemini-3-pro-image-preview"
+                # },
                 {
                     "name": "Yunwu Gemini",
                     "apiKey": "",
                     "baseUrl": "https://yunwu.zeabur.app/v1beta",
-                    "model": "gemini-3-pro-image-preview"
+                    "model": "gemini-3-pro-image-preview",
                 },
                 {
                     "name": "GPTGod NanoBanana Pro",
                     "apiKey": "",
                     "baseUrl": "https://api.gptgod.online/v1/chat/completions",
-                    "model": "gemini-3-pro-image-preview"
+                    "model": "gemini-3-pro-image-preview",
                 },
                 {
                     "name": "OpenRouter",
                     "apiKey": "",
                     "baseUrl": "https://openrouter.ai/api/v1/chat/completions",
-                    "model": "google/gemini-3-pro-image-preview"
-                }
+                    "model": "google/gemini-3-pro-image-preview",
+                },
             ]
             self.save()
 
     def save(self):
         try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
+            with open(self.config_file, "w", encoding="utf-8") as f:
                 json.dump(self.providers, f, indent=4)
         except Exception as e:
             print(f"Error saving providers: {e}")
@@ -66,13 +67,10 @@ class ProviderManager:
         for p in self.providers:
             if p["name"] == name:
                 return False, "Provider name already exists."
-        
-        self.providers.append({
-            "name": name,
-            "apiKey": api_key,
-            "baseUrl": base_url,
-            "model": model
-        })
+
+        self.providers.append(
+            {"name": name, "apiKey": api_key, "baseUrl": base_url, "model": model}
+        )
         self.save()
         return True, "Provider added."
 
@@ -101,13 +99,13 @@ class ProviderManager:
         api_key = provider_config.get("apiKey", "")
         base_url = provider_config.get("baseUrl", "")
         name = provider_config.get("name", "")
-        
+
         if not api_key or not base_url:
             return False, "Missing API Key or Base URL."
 
         api_url = ""
         headers = {"Content-Type": "application/json"}
-        
+
         # Logic adapted from PS_Banana.jsx
         if name == "Google Gemini" or name == "Yunwu Gemini":
             # Gemini style: .../models?key=API_KEY
@@ -115,7 +113,7 @@ class ProviderManager:
             if base_url.endswith("/"):
                 base_url = base_url[:-1]
             api_url = f"{base_url}/models?key={api_key}"
-            
+
         elif "gptgod" in name.lower() or "gptgod" in base_url.lower():
             # GPTGod / OpenAI style
             # We want to hit /models
@@ -125,9 +123,9 @@ class ProviderManager:
                 if not base_url.endswith("/"):
                     base_url += "/"
                 api_url = base_url + "models"
-            
+
             headers["Authorization"] = f"Bearer {api_key}"
-        
+
         elif "openrouter" in name.lower() or "openrouter.ai" in base_url.lower():
             # OpenRouter style - similar to OpenAI
             if "/chat/completions" in base_url:
@@ -136,7 +134,7 @@ class ProviderManager:
                 if not base_url.endswith("/"):
                     base_url += "/"
                 api_url = base_url + "models"
-            
+
             headers["Authorization"] = f"Bearer {api_key}"
         else:
             # Custom / OpenAI compatible fallback
@@ -149,27 +147,33 @@ class ProviderManager:
                 api_url += "models"
                 headers["Authorization"] = f"Bearer {api_key}"
             else:
-                return True, "Custom provider: Cannot automatically test. Please verify manually."
+                return (
+                    True,
+                    "Custom provider: Cannot automatically test. Please verify manually.",
+                )
 
         try:
             # Create request
             req = urllib.request.Request(api_url, headers=headers, method="GET")
-            
-            # Create SSL context (ignore verification for simplicity/compatibility if needed, 
+
+            # Create SSL context (ignore verification for simplicity/compatibility if needed,
             # but standard is better. Let's start with standard.)
             # If users have cert issues, we might need ssl._create_unverified_context()
             context = ssl.create_default_context()
-            
+
             with urllib.request.urlopen(req, context=context, timeout=10) as response:
                 status = response.status
-                response_body = response.read().decode('utf-8')
-                
+                response_body = response.read().decode("utf-8")
+
                 if 200 <= status < 300:
                     try:
                         data = json.loads(response_body)
                         # Check for error fields even in 200 response (some APIs are weird)
                         if "error" in data:
-                            return False, f"API Error: {data['error'].get('message', 'Unknown error')}"
+                            return (
+                                False,
+                                f"API Error: {data['error'].get('message', 'Unknown error')}",
+                            )
                         return True, "Connection successful!"
                     except json.JSONDecodeError:
                         return False, "Invalid JSON response."
@@ -182,4 +186,3 @@ class ProviderManager:
             return False, f"Connection Error: {e.reason}"
         except Exception as e:
             return False, f"Error: {str(e)}"
-
