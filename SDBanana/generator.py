@@ -85,9 +85,11 @@ All generated textures must be strictly **Seamless Tiling** (continuous 4-way ac
 - Examples include weathering, scratches, oxidation/rust, structural damage, or sun-fading.
 - **Do not** generate "pristine" or brand-new textures unless explicitly requested.
 **5. PBR Definition**
-- **Metallic:** The metallic map must clearly and binarily distinguish between dielectrics (non-metals, usually black/0.0) and conductors (metals, usually white/1.0).
-- **Roughness:** Nuanced and varied roughness maps are critical for achieving photorealism. Avoid uniform roughness values; incorporate surface imperfections that affect light reflections.
-        """
+- **Metallic Definition:** The metallic map must clearly and binarily distinguish between dielectrics (non-metals, usually black/0.0) and conductors (metals, usually white/1.0).
+- **Albedo/basecolor Value Validation (Critical PBR Compliance):** The brightness range of the Albedo map must correspond to the material type defined in the Metallic map:
+    - **For Dielectrics (Non-metals):** Albedo brightness must fall within physically accurate darker-to-mid ranges (typically sRGB 30-220). Absolutely avoid pure black (0) or pure white (255).
+    - **For Conductors (Metals):** The Albedo represents reflective F0 color and must be bright (typically sRGB 180-255).
+- **Roughness:** Nuanced and varied roughness maps are critical for achieving photorealism. Avoid uniform roughness values; incorporate surface imperfections that affect light reflections.        """
 
         # ==========================================
 
