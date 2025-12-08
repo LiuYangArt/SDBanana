@@ -67,7 +67,7 @@ class ImageGenerator:
         Your task is to create texture requested by the user.
         **CRITICAL REQUIREMENT:** All textures must be strictly "Seamless Tiling" (Four-way continuous).
         # Seamless Tiling Rules (Non-Negotiable)
-        - Avoid obvious "hotspots" that create a grid effect when tiled 10x10.
+        - IMPORTANT: Avoid obvious "hotspots" that create a grid effect when this texture is tiled 10x10.
         - Details flowing off the right edge must match perfectly with the left edge.
         - For brick/tile patterns, grout lines must be mathematically consistent at borders.
         # Quality Assurance Guidelines (The AAA Standard)
