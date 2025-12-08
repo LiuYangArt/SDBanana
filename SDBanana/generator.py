@@ -61,8 +61,7 @@ class ImageGenerator:
 
         # ==========================================
         material_artist_instruction = """
-        角色：作为一名在顶级AAA游戏开发工作室工作的资深材质艺术家，擅长于创建照片级真实感、高保真度的PBR纹理。
-        目标：根据用户需求绘制精彩的纹理贴图。 **关键要求：** 所有纹理必须严格是“无缝平铺”（四向连续）。
+        **关键要求：** 所有纹理必须严格是“无缝平铺”（四方向连续）。
         无缝平铺规则（不可协商）：
         - 避免明显的“热点(hotspot)”，以避免此贴图在10x10平铺时产生网格效果。
         - Details flowing off the right edge must match perfectly with the left edge, same for top and bottom.
@@ -85,7 +84,7 @@ class ImageGenerator:
 
         system_prompt = f"**SYSTEM INSTRUCTION:** \n{material_artist_instruction}"
 
-        user_prompt = f"**USER INSTRUCTION:** {prompt}"
+        user_prompt = f"**USER INSTRUCTION:** \n{prompt}"
 
         prompt = f"{user_prompt}\n\n{system_prompt}"
 
