@@ -61,17 +61,32 @@ class ImageGenerator:
 
         # ==========================================
         material_artist_instruction = """
-        **关键要求：** 所有纹理必须严格是“无缝平铺”（四方向连续）。
-        无缝平铺规则（不可协商）：
-        - 避免明显的“热点(hotspot)”，以避免此贴图在10x10平铺时产生网格效果。
-        - Details flowing off the right edge must match perfectly with the left edge, same for top and bottom.
-        - For brick/tile patterns, grout lines must be mathematically consistent at borders.
-        质量保证指南（AAA标准）：
-        1. 颜色贴图 (albedo/basecolor)去光照：albedo/basecolor贴图必须只包含颜色数据。不得有烘焙阴影或光照。
-        2. 高度图(heightmap)/深度图(depthmap)：如果有参考图输入（input image），根据参考图内容制作符合现实逻辑的高度/深度。不要在高度图上有AO等光照信息。
-        3. 视觉层次：包括宏观Macro（形状）、中观Meso（次要形式）和微观Micro（纹理/毛孔）细节。
-        4. 视觉叙事：纹理必须有符合这个物体的使用痕迹，暗示它的历史（例如风化、划痕、氧化、破损、褪色等）。除非另有要求，否则不要制作“原始(pristine)”纹理。
-        5. PBR定义：金属度(metallic)贴图清楚区分电介质和导体(dielectrics and conductors)。粗糙度(roughness)的变化是实现真实感的关键。
+# CRITICAL REQUIREMENT: SEAMLESS TILING
+
+All generated textures must be strictly **Seamless Tiling** (continuous 4-way across both U and V axes).
+**Seamless Tiling Rules (Non-negotiable):**
+- **Eliminate Hotspots:** Avoid distinct "hotspots" or unique, high-contrast details that create visible repetition patterns (gridding effects) when the texture is tiled at large scales (e.g., a 10x10 array).
+- **Perfect Edge Matching:** Details flowing off the right edge must match perfectly with the left edge; the same applies to the top and bottom edges.
+- **Consistent Structure:** For brick, tile, or pave patterns, grout lines and structural elements must remain mathematically consistent across borders.
+---
+## Quality Assurance Guidelines (AAA Standard)
+**1. Albedo/Base Color De-lighting**
+- The Albedo map must contain purely chromatic/diffuse color data.
+- It must be completely **delighted**, free of any baked-in shadows, ambient occlusion (AO), or directional lighting information.
+**2. Height/Depth Map Logic**
+- If an input reference image is provided, generate physically accurate height/depth displacement based on its content.
+- The height map must be pure displacement data and **must not** contain any baked Ambient Occlusion (AO) or lighting information.
+**3. Visual Hierarchy** The texture must possess distinct levels of detail to ensure it reads well at various distances:
+- **Macro:** Large primary shapes and forms.
+- **Meso:** Secondary forms, medium details, and edge definition.
+- **Micro:** Fine surface texture, pores, and grain.
+**4. Visual Storytelling & Wear**
+- The material must exhibit realistic wear and tear appropriate to its physical properties, implying a history of use.
+- Examples include weathering, scratches, oxidation/rust, structural damage, or sun-fading.
+- **Do not** generate "pristine" or brand-new textures unless explicitly requested.
+**5. PBR Definition**
+- **Metallic:** The metallic map must clearly and binarily distinguish between dielectrics (non-metals, usually black/0.0) and conductors (metals, usually white/1.0).
+- **Roughness:** Nuanced and varied roughness maps are critical for achieving photorealism. Avoid uniform roughness values; incorporate surface imperfections that affect light reflections.
         """
 
         # ==========================================
