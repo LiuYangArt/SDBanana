@@ -5,7 +5,7 @@
 
 - 需自行购买第三方api
 - 在Settings页面填入API。目前只在yunwu/gptgod测试过，google 官方的API我这边没有条件测。
-  [yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc)
+- 获取API： [yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc)
 
 ## 插件下载
 [https://github.com/LiuYangArt/SDBanana/blob/main/Addon/SDBanana.zip](https://github.com/LiuYangArt/SDBanana/blob/main/Addon/SDBanana.zip)
@@ -67,65 +67,3 @@
 
 
 
----
-
-# SDBanana for Substance 3D Designer
-
-🍌 An AI image generation plugin for Substance 3D Designer, leveraging third-party APIs to generate images using Google nano banana pro AI.
-
-- You need to purchase a third-party API key yourself.
-- Enter the API key on the Settings page. Currently, it has only been tested with yunwu/gptgod. I don't have the conditions to test Google's official API.
-  [yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc)
-
-## Plugin Download
-[https://github.com/LiuYangArt/SDBanana/blob/main/Addon/SDBanana.zip](https://github.com/LiuYangArt/SDBanana/blob/main/Addon/SDBanana.zip)
-
-## Features
-
-- When an SD node is selected, the node serves as the input for image generation.
-- When no node is selected, it generates images based solely on the prompt (text-to-image).
-
-## Installation Guide
-
-1. **Locate the Plugin Directory**
-
-   Windows:
-   ```
-   C:\Users\<username>\Documents\Adobe\Adobe Substance 3D Designer\python\plugins
-   ```
-
-2. **Copy Plugin Files**
-
-   Copy the entire `SDBanana` folder into the plugin directory mentioned above.
-   <img width="1267" height="324" alt="image" src="https://github.com/user-attachments/assets/06e0a0f6-0326-42c7-9229-784f07886272" />
-
-## How to Use
-
-1. **Open the Plugin Panel**
-   - Launch Substance 3D Designer
-   - Find `SD Banana` in the `Window` menu
-   - Click to open the panel
-
-2. **Configure API Settings**
-   - Switch to the `Settings` Tab
-   - Select your API Provider (currently supports Google official API, Openrouter, Yunwu, Gptgod)
-   - Enter your API Key
-   - Click `Save` to save settings
-     <img width="663" height="335" alt="image" src="https://github.com/user-attachments/assets/72d461a9-7739-42df-98b9-1d00971268e4" />
-   - When using the Yunwu API, you need to enable Gemini-related groups to use the Gemini image generation API.
-     <img width="1935" height="151" alt="image" src="https://github.com/user-attachments/assets/c43e9d7e-ccfb-4981-bcc3-4a4db7393806" />
-
-3. **Generate Images**
-   - Switch to the `Generate` Tab
-   - Enter your description in the Prompt input box
-   - Select the image size
-   - Click `Generate Image`
-   - When an SD node is selected, the node serves as the input for image generation.
-   - When no node is selected, it generates images based solely on the prompt (text-to-image).
-
-<img width="1845" height="1662" alt="image" src="https://github.com/user-attachments/assets/84bd147e-fd86-4f8c-932d-5cdf0202e056" />
-<img width="2001" height="895" alt="image" src="https://github.com/user-attachments/assets/b9e519b9-bf82-4746-8296-f975f76a6f84" />
-
-
-## Disclaimer
-This plugin relies on third-party API services. Please be aware that your data (including but not limited to images and prompts) will be transmitted to external servers for processing. The developer assumes no liability for data security, privacy leaks, or service stability regarding these third-party providers. Please do not upload sensitive personal information; users assume all risks associated with data privacy when using this plugin.
