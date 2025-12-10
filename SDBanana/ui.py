@@ -718,7 +718,7 @@ class SDBananaPanel(QWidget):
         current_text = self.preset_combo.currentText()
         self.preset_combo.blockSignals(True)
         self.preset_combo.clear()
-        names = self.preset_manager.get_all_names()
+        names = ["--- Select Preset ---"] + self.preset_manager.get_all_names()
         self.preset_combo.addItems(names)
 
         index = self.preset_combo.findText(current_text)
