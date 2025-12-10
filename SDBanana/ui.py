@@ -25,7 +25,7 @@ from .importer import (
     is_png_rgb_equal_full,
 )
 from .exporter import NodeExporter
-from .settings import SettingsManager
+from .settings import SettingsManager, DEFAULT_SYSTEM_INSTRUCTION
 import os
 
 
@@ -80,14 +80,17 @@ class SDBananaPanel(QWidget):
 
     def __init__(self, parent=None):
         super(SDBananaPanel, self).__init__(parent)
+        self.settings_manager = SettingsManager()
+        self.current_settings = self.settings_manager.settings
+
         self.provider_manager = ProviderManager()
         self.preset_manager = PresetManager()
-        self.image_generator = ImageGenerator(self.provider_manager)
+        self.image_generator = ImageGenerator(
+            self.provider_manager, self.settings_manager
+        )
         self.importer = ImageImporter()
         self.exporter = NodeExporter()
 
-        self.settings_manager = SettingsManager()
-        self.current_settings = self.settings_manager.settings
         self.active_workers = []
         self.init_ui()
 
@@ -131,12 +134,12 @@ class SDBananaPanel(QWidget):
         main_layout.addWidget(self.tab_widget)
 
         # Footer: version/info label
-        footer_label = QLabel("🍌 SD Banana V1.1.0 by LiuYang")
+        footer_label = QLabel("🍌 SD Banana V1.2.0 by LiuYang")
         footer_label.setStyleSheet("color: #888888; font-size: 10px; padding: 4px;")
         main_layout.addWidget(footer_label, alignment=QtCore.Qt.AlignRight)
 
         self.setLayout(main_layout)
-        self.setMinimumSize(400, 500)
+        self.setMinimumSize(400, 600)
 
     def create_generation_tab(self):
         """Create Generation Tab"""
@@ -495,6 +498,52 @@ class SDBananaPanel(QWidget):
         self.model_input.setStyleSheet(self._get_input_style())
         layout.addWidget(self.model_input)
 
+        # --- System Instruction Section ---
+        sys_instr_label = QLabel("System Instruction:")
+        sys_instr_label.setStyleSheet(
+            "color: #cccccc; font-weight: bold; padding-top: 15px;"
+        )
+        layout.addWidget(sys_instr_label)
+
+        self.sys_instr_input = QTextEdit()
+        self.sys_instr_input.setMinimumHeight(120)
+        self.sys_instr_input.setStyleSheet(
+            """
+            QTextEdit {
+                background-color: #1e1e1e;
+                color: #cccccc;
+                border: 1px solid #444444;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 11px;
+            }
+        """
+        )
+        # Load System Instruction from settings
+        current_sys_instr = self.current_settings.get(
+            "system_instruction", DEFAULT_SYSTEM_INSTRUCTION
+        )
+        self.sys_instr_input.setText(current_sys_instr)
+        layout.addWidget(self.sys_instr_input)
+
+        # System Instruction Buttons
+        sys_actions_row = QWidget()
+        sys_actions_layout = QHBoxLayout(sys_actions_row)
+        sys_actions_layout.setContentsMargins(0, 5, 0, 0)
+
+        self.btn_save_sys_instr = QPushButton("Save Instruction")
+        self.btn_save_sys_instr.setStyleSheet(btn_style)
+        self.btn_save_sys_instr.clicked.connect(self.on_save_sys_instr)
+        sys_actions_layout.addWidget(self.btn_save_sys_instr)
+
+        self.btn_reset_sys_instr = QPushButton("Reset Default")
+        self.btn_reset_sys_instr.setStyleSheet(btn_style)
+        self.btn_reset_sys_instr.clicked.connect(self.on_reset_sys_instr)
+        sys_actions_layout.addWidget(self.btn_reset_sys_instr)
+
+        sys_actions_layout.addStretch()
+        layout.addWidget(sys_actions_row)
+
         # --- Debug ---
         self.chk_debug = QCheckBox("Enable Debug Mode (Log prompts & keep temp images)")
         self.chk_debug.setStyleSheet(
@@ -796,6 +845,29 @@ class SDBananaPanel(QWidget):
                 self.refresh_presets_ui()
             else:
                 QMessageBox.warning(self, "Error", msg)
+
+    # --- System Instruction Event Handlers ---
+
+    def on_save_sys_instr(self):
+        """Save the system instruction to settings"""
+        text = self.sys_instr_input.toPlainText()
+        self.current_settings["system_instruction"] = text
+        self.settings_manager.set("system_instruction", text)
+        QMessageBox.information(self, "Success", "System instruction saved!")
+
+    def on_reset_sys_instr(self):
+        """Reset system instruction to default"""
+        reply = QMessageBox.question(
+            self,
+            "Confirm Reset",
+            "Are you sure you want to reset the System Instruction to the default value?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+
+        if reply == QMessageBox.Yes:
+            self.sys_instr_input.setText(DEFAULT_SYSTEM_INSTRUCTION)
+            self.on_save_sys_instr()
 
     # --- Generation Event Handlers ---
 
