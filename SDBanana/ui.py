@@ -582,6 +582,26 @@ class SDBananaPanel(QWidget):
         self.chk_save_images.stateChanged.connect(self.on_save_images_changed)
         layout.addWidget(self.chk_save_images)
 
+        # Open Debug Log Folder Button
+        self.btn_open_debug_log = QPushButton("Open Debug Log Folder")
+        self.btn_open_debug_log.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #444444;
+                color: #ffffff;
+                border: none;
+                border-radius: 3px;
+                padding: 5px 10px;
+                text-align: left;
+                padding-left: 10px;
+                margin-top: 5px;
+            }
+            QPushButton:hover { background-color: #555555; }
+        """
+        )
+        self.btn_open_debug_log.clicked.connect(self.on_open_debug_log_clicked)
+        layout.addWidget(self.btn_open_debug_log)
+
         # Spacer
         layout.addStretch()
 
@@ -760,6 +780,19 @@ class SDBananaPanel(QWidget):
         self.settings_manager.set("save_generated_images", is_checked)
         if is_checked:
             print("Save Generated Images Enabled")
+
+    def on_open_debug_log_clicked(self):
+        """Open the debug log directory in file explorer"""
+        # Get directory from generator instance since it has it defined
+        log_dir = self.image_generator.output_dir
+
+        if os.path.exists(log_dir):
+            try:
+                os.startfile(log_dir)
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to open directory: {e}")
+        else:
+            QMessageBox.warning(self, "Error", f"Log directory not found: {log_dir}")
 
     # --- Preset Event Handlers ---
 
