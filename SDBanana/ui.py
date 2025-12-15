@@ -1,4 +1,5 @@
 from PySide6 import QtWidgets, QtCore
+import sd
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -74,6 +75,26 @@ class GenerationWorker(QThread):
             self.finished.emit(False, str(e))
 
 
+class TestConnectionWorker(QThread):
+    """
+    Worker thread for testing API connection.
+    """
+
+    finished = Signal(bool, str)
+
+    def __init__(self, provider_manager, config):
+        super().__init__()
+        self.provider_manager = provider_manager
+        self.config = config
+
+    def run(self):
+        try:
+            success, msg = self.provider_manager.test_connection(self.config)
+            self.finished.emit(success, msg)
+        except Exception as e:
+            self.finished.emit(False, str(e))
+
+
 class SDBananaPanel(QWidget):
     """
     SDBanana Main Panel
@@ -82,6 +103,7 @@ class SDBananaPanel(QWidget):
 
     def __init__(self, parent=None):
         super(SDBananaPanel, self).__init__(parent)
+        self.logger = sd.getContext().getLogger()
         self.settings_manager = SettingsManager()
         self.current_settings = self.settings_manager.settings
 
@@ -155,7 +177,7 @@ class SDBananaPanel(QWidget):
                     data = json.load(f)
                     return data.get("version", "Unknown")
         except Exception as e:
-            print(f"Error reading version: {e}")
+            self.logger.warning(f"Error reading version: {e}")
         return "Unknown"
 
         self.setLayout(main_layout)
@@ -770,11 +792,21 @@ class SDBananaPanel(QWidget):
         }
 
         self.status_label.setText("Testing connection...")
+        self.btn_test.setEnabled(False)
         QtWidgets.QApplication.processEvents()  # Force UI update
 
-        success, msg = self.provider_manager.test_connection(temp_config)
+        self.test_worker = TestConnectionWorker(self.provider_manager, temp_config)
+        self.test_worker.finished.connect(self.on_test_connection_finished)
+        self.test_worker.start()
+        self.active_workers.append(self.test_worker)
 
+    def on_test_connection_finished(self, success, msg):
+        self.btn_test.setEnabled(True)
         self.status_label.setText("Ready")
+
+        sender = self.sender()
+        if sender in self.active_workers:
+            self.active_workers.remove(sender)
 
         if success:
             QMessageBox.information(self, "Connection Successful", msg)
@@ -792,7 +824,7 @@ class SDBananaPanel(QWidget):
             self.export_nodes_btn.setVisible(is_checked)
 
         if is_checked:
-            print("Debug Mode Enabled")
+            self.logger.info("Debug Mode Enabled")
 
     def on_save_images_changed(self, state):
         is_checked = state == QtCore.Qt.Checked

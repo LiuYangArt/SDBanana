@@ -1,7 +1,7 @@
 ##########################################################################
 # SDBanana Plugin for Substance 3D Designer
 # AI Image Generation using Nano Banana API
-# Author: LiuYang 
+# Author: LiuYang
 # https://github.com/LiuYangArt/SDBanana
 ##########################################################################
 
@@ -24,30 +24,31 @@ def initializeSDPlugin():
     Substance Designer 会在加载插件时调用此函数
     """
     global PANEL_INSTANCE, CALLBACK_ID
-    
+
     # 获取应用上下文
     ctx = sd.getContext()
     app: SDApplication = ctx.getSDApplication()
     ui_mgr: QtForPythonUIMgrWrapper = app.getQtForPythonUIMgr()
-    
+
     # 创建停靠窗口容器
     # newDockWidget 返回一个容器 widget，需要传入 identifier 和 title
     dock_widget = ui_mgr.newDockWidget(
-        "com.sdbanana.panel",              # identifier
-        "SD Banana - AI Image Generation"  # title
+        "com.sdbanana.panel", "SD Banana - AI Image Generation"  # identifier  # title
     )
-    
+
     # 创建并设置插件面板到停靠窗口
     PANEL_INSTANCE = SDBananaPanel(parent=dock_widget)
-    
+
     # 将面板设置为停靠窗口的内容
     from PySide6.QtWidgets import QVBoxLayout
+
     layout = QVBoxLayout()
     layout.addWidget(PANEL_INSTANCE)
     layout.setContentsMargins(0, 0, 0, 0)
     dock_widget.setLayout(layout)
-    
-    print("SDBanana 插件已加载")
+
+    logger = sd.getContext().getLogger()
+    logger.info("SDBanana: Plugin initialized successfully")
 
 
 def uninitializeSDPlugin():
@@ -56,10 +57,11 @@ def uninitializeSDPlugin():
     Substance Designer 会在卸载插件时调用此函数
     """
     global PANEL_INSTANCE, CALLBACK_ID
-    
+
     # 清理资源
     if PANEL_INSTANCE:
         PANEL_INSTANCE.deleteLater()
         PANEL_INSTANCE = None
-    
-    print("SDBanana 插件已卸载")
+
+    logger = sd.getContext().getLogger()
+    logger.info("SDBanana: Plugin uninitialized")

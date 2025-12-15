@@ -1,4 +1,5 @@
 import os
+import sd
 import json
 import urllib.request
 import urllib.error
@@ -9,6 +10,7 @@ class ProviderManager:
     def __init__(self):
         self.config_file = os.path.join(os.path.dirname(__file__), "providers.json")
         self.providers = []
+        self.logger = sd.getContext().getLogger()
         self.load()
 
     def load(self):
@@ -17,7 +19,7 @@ class ProviderManager:
                 with open(self.config_file, "r", encoding="utf-8") as f:
                     self.providers = json.load(f)
             except Exception as e:
-                print(f"Error loading providers: {e}")
+                self.logger.error(f"Error loading providers: {e}")
                 self.providers = []
         else:
             # Default providers if file doesn't exist
@@ -54,7 +56,7 @@ class ProviderManager:
             with open(self.config_file, "w", encoding="utf-8") as f:
                 json.dump(self.providers, f, indent=4)
         except Exception as e:
-            print(f"Error saving providers: {e}")
+            self.logger.error(f"Error saving providers: {e}")
 
     def get_provider(self, name):
         for p in self.providers:

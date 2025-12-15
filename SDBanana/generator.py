@@ -1,4 +1,5 @@
 import os
+import sd
 
 import json
 
@@ -16,6 +17,7 @@ class ImageGenerator:
     def __init__(self, provider_manager, settings_manager):
         self.provider_manager = provider_manager
         self.settings_manager = settings_manager
+        self.logger = sd.getContext().getLogger()
 
         # AppData/Local/SD_Banana
         self.output_dir = os.path.join(os.getenv("LOCALAPPDATA"), "SD_Banana")
@@ -32,7 +34,7 @@ class ImageGenerator:
             with open(image_path, "rb") as image_file:
                 return base64.b64encode(image_file.read()).decode("utf-8")
         except Exception as e:
-            print(f"Error converting image to base64: {e}")
+            self.logger.error(f"Error converting image to base64: {e}")
             return None
 
     def generate_image(
@@ -306,29 +308,31 @@ class ImageGenerator:
 
         # Debug Log
 
+        # Debug Log
+
         if debug_mode:
 
-            print(f"--- DEBUG MODE ENABLED ---")
+            self.logger.info(f"--- DEBUG MODE ENABLED ---")
 
-            print(f"Output Directory: {self.output_dir}")
+            self.logger.info(f"Output Directory: {self.output_dir}")
 
-            print(f"Provider: {provider_name}")
+            self.logger.info(f"Provider: {provider_name}")
 
-            print(f"Resolution Setting: {resolution}")
+            self.logger.info(f"Resolution Setting: {resolution}")
 
-            print(f"Is GPTGod: {is_gptgod}")
+            self.logger.info(f"Is GPTGod: {is_gptgod}")
 
-            print(f"Is OpenRouter: {is_openrouter}")
+            self.logger.info(f"Is OpenRouter: {is_openrouter}")
 
-            print(f"Is Google Official: {is_google_official}")
+            self.logger.info(f"Is Google Official: {is_google_official}")
 
             if is_gptgod:
 
-                print(f"Original Model: {model}")
+                self.logger.info(f"Original Model: {model}")
 
-                print(f"Actual Model (after resolution): {actual_model}")
+                self.logger.info(f"Actual Model (after resolution): {actual_model}")
 
-            print(f"URL: {api_url}")
+            self.logger.info(f"URL: {api_url}")
 
             # Truncate base64 for console logging
 
@@ -360,9 +364,9 @@ class ImageGenerator:
 
                             parts[1]["inline_data"]["data"] = "<BASE64_IMAGE_DATA>"
 
-            print(f"Payload: {json.dumps(log_payload, indent=2)}")
+            self.logger.info(f"Payload: {json.dumps(log_payload, indent=2)}")
 
-            print(f"-------------")
+            self.logger.info(f"-------------")
 
             # Save full payload to file
 
@@ -378,11 +382,11 @@ class ImageGenerator:
 
                     json.dump(payload, f, indent=4, ensure_ascii=False)
 
-                print(f"Debug payload saved to: {log_path}")
+                self.logger.info(f"Debug payload saved to: {log_path}")
 
             except Exception as e:
 
-                print(f"Failed to save debug payload: {e}")
+                self.logger.error(f"Failed to save debug payload: {e}")
 
         # Execute Request
 
@@ -411,7 +415,7 @@ class ImageGenerator:
 
                 if debug_mode:
 
-                    print(f"Response: {json.dumps(response_json, indent=2)}")
+                    self.logger.info(f"Response: {json.dumps(response_json, indent=2)}")
 
                 # Parse Response and Save Image
 
