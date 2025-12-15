@@ -1,0 +1,55 @@
+name: Release Plugin
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Prepare and Zip Plugin
+        run: |
+          # Extract version from tag (e.g., v2.2.6 -> 2.2.6)
+          VERSION=${GITHUB_REF_NAME#v}
+          ZIP_NAME="SDBanana_${VERSION}.zip"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
+          # Create staging directory structure
+          mkdir -p build_staging/SDBanana
+
+          # Use rsync to copy files while excluding development artifacts
+          rsync -av . build_staging/SDBanana \
+            --exclude '.git*' \
+            --exclude '.github' \
+            --exclude '.vscode' \
+            --exclude 'publish_release.bat' \
+            --exclude 'version_manager.py' \
+            --exclude '.DS_Store' \
+            --exclude '.agent' \
+            --exclude '.qoder' \
+            --exclude '*.code-workspace' \
+            --exclude 'build_staging' \
+            --exclude '__pycache__' \
+            --exclude '*.pyc'
+
+          # Zip the folder
+          cd build_staging
+          zip -r "../$ZIP_NAME" SDBanana
+          cd ..
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ env.ZIP_NAME }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true

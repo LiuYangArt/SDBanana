@@ -26,7 +26,9 @@ from .importer import (
 )
 from .exporter import NodeExporter
 from .settings import SettingsManager, DEFAULT_SYSTEM_INSTRUCTION
+from .settings import SettingsManager, DEFAULT_SYSTEM_INSTRUCTION
 import os
+import json
 
 
 class GenerationWorker(QThread):
@@ -134,9 +136,27 @@ class SDBananaPanel(QWidget):
         main_layout.addWidget(self.tab_widget)
 
         # Footer: version/info label
-        footer_label = QLabel("🍌 SD Banana V1.2.0 by LiuYang")
+        version = self.get_plugin_version()
+        footer_label = QLabel(f"🍌 SD Banana V{version} by LiuYang")
         footer_label.setStyleSheet("color: #888888; font-size: 10px; padding: 4px;")
         main_layout.addWidget(footer_label, alignment=QtCore.Qt.AlignRight)
+
+    def get_plugin_version(self):
+        """Read version from pluginInfo.json in the parent directory"""
+        try:
+            # Assuming ui.py is in SDBanana/SDBanana/ui.py
+            # and pluginInfo.json is in SDBanana/pluginInfo.json
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            parent_dir = os.path.dirname(current_dir)
+            info_path = os.path.join(parent_dir, "pluginInfo.json")
+
+            if os.path.exists(info_path):
+                with open(info_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    return data.get("version", "Unknown")
+        except Exception as e:
+            print(f"Error reading version: {e}")
+        return "Unknown"
 
         self.setLayout(main_layout)
         self.setMinimumSize(400, 600)
