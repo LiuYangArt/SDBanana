@@ -163,6 +163,9 @@ class SDBananaPanel(QWidget):
         footer_label.setStyleSheet("color: #888888; font-size: 10px; padding: 4px;")
         main_layout.addWidget(footer_label, alignment=QtCore.Qt.AlignRight)
 
+        self.setLayout(main_layout)
+        self.setMinimumSize(400, 600)
+
     def get_plugin_version(self):
         """Read version from pluginInfo.json in the parent directory"""
         try:
@@ -179,9 +182,6 @@ class SDBananaPanel(QWidget):
         except Exception as e:
             self.logger.warning(f"Error reading version: {e}")
         return "Unknown"
-
-        self.setLayout(main_layout)
-        self.setMinimumSize(400, 600)
 
     def create_generation_tab(self):
         """Create Generation Tab"""
