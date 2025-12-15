@@ -37,6 +37,7 @@ jobs:
             --exclude '.qoder' \
             --exclude '*.code-workspace' \
             --exclude 'build_staging' \
+            --exclude 'Addon' \
             --exclude '__pycache__' \
             --exclude '*.pyc'
 
