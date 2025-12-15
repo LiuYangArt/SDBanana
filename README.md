@@ -11,8 +11,9 @@
 
 
 ## 插件下载
-[https://github.com/LiuYangArt/SDBanana/blob/main/Addon/SDBanana.zip](https://github.com/LiuYangArt/SDBanana/blob/main/Addon/SDBanana.zip)
-
+在release中下载插件最新的.zip包
+[https://github.com/LiuYangArt/SDBanana/releases/
+](https://github.com/LiuYangArt/SDBanana/releases/)
 
 ## 功能特性
 
