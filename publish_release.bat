@@ -83,6 +83,14 @@ if /i "%confirm%"=="y" (
     git add pluginInfo.json version_manager.py
     git commit -m "chore(release): version !NEW_VERSION!"
 
+    if !errorlevel! neq 0 (
+        echo.
+        echo [错误] 提交失败！可能是 pre-commit 钩子修改了文件。
+        echo 请检查更改，重新添加文件 (git add)，然后再次运行此脚本或手动提交。
+        pause
+        goto :eof
+    )
+
     echo 正在打标签 ...
     git tag v!NEW_VERSION!
 
