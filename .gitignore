@@ -1,0 +1,17 @@
+# Python / Standard
+__pycache__/
+*.py[cod]
+*$py.class
+.ruff_cache/
+.vscode/
+.idea/
+*.spec
+dist/
+build/
+*.egg-info/
+package-lock.json
+
+# User Configuration
+SDBanana/presets.json
+SDBanana/providers.json
+SDBanana/settings.json
