@@ -22,11 +22,8 @@ from .generator import ImageGenerator
 from .importer import (
     ImageImporter,
     detect_image_format,
-    is_image_grayscale_quick,
-    is_png_rgb_equal_full,
 )
 from .exporter import NodeExporter
-from .settings import SettingsManager, DEFAULT_SYSTEM_INSTRUCTION
 from .settings import SettingsManager, DEFAULT_SYSTEM_INSTRUCTION
 import os
 import json
@@ -1012,7 +1009,7 @@ class SDBananaPanel(QWidget):
                     center_y += offset_y
                     self.insert_position_for_next_import = (center_x, center_y)
 
-                except Exception as e:
+                except Exception:
                     pass
                     self.insert_position_for_next_import = None
             else:
@@ -1130,7 +1127,7 @@ class SDBananaPanel(QWidget):
                 try:
                     if os.path.exists(result):
                         os.remove(result)
-                except Exception as e:
+                except Exception:
                     pass
 
             # Cleanup Input Image (Always cleanup temp export)
@@ -1138,7 +1135,7 @@ class SDBananaPanel(QWidget):
                 try:
                     os.remove(input_image_path)
 
-                except Exception as e:
+                except Exception:
                     pass
 
             # Show simple success message
@@ -1173,9 +1170,9 @@ class SDBananaPanel(QWidget):
         images.sort(key=os.path.getmtime, reverse=True)
         latest_image = images[0]
 
-        fmt = detect_image_format(latest_image)
+        # fmt = detect_image_format(latest_image)
 
-        is_gray = is_image_grayscale_quick(latest_image)
+        # is_gray = is_image_grayscale_quick(latest_image)
 
         # Get test resolution from combo box
         test_resolution = self.test_res_combo.currentText()
@@ -1204,15 +1201,15 @@ class SDBananaPanel(QWidget):
                 "Images (*.png *.jpg *.jpeg *.webp *.bmp)",
             )
             if not file_path:
-
                 return
 
             fmt = detect_image_format(file_path)
 
-            quick = is_image_grayscale_quick(file_path)
+            # quick = is_image_grayscale_quick(file_path)
 
             if fmt == "png":
-                full = is_png_rgb_equal_full(file_path)
+                # full = is_png_rgb_equal_full(file_path)
+                pass
 
             resolution = (
                 self.res_combo.currentText() if hasattr(self, "res_combo") else "1K"
@@ -1230,7 +1227,7 @@ class SDBananaPanel(QWidget):
                 )
             else:
                 QMessageBox.warning(self, "选择文件导入", str(msg))
-        except Exception as e:
+        except Exception:
             pass
 
     def on_export_nodes_clicked(self):

@@ -1,6 +1,7 @@
 import os
 import json
 
+
 class PresetManager:
     def __init__(self):
         self.config_file = os.path.join(os.path.dirname(__file__), "presets.json")
@@ -10,7 +11,7 @@ class PresetManager:
     def load(self):
         if os.path.exists(self.config_file):
             try:
-                with open(self.config_file, 'r', encoding='utf-8') as f:
+                with open(self.config_file, "r", encoding="utf-8") as f:
                     self.presets = json.load(f)
             except Exception as e:
                 print(f"Error loading presets: {e}")
@@ -19,14 +20,20 @@ class PresetManager:
             # Default presets
             self.presets = [
                 {"name": "Upscale", "prompt": "Upscale to 4K"},
-                {"name": "Edge Wear", "prompt": "为这张高度图添加边缘破损，保持四方连续"},
-                {"name": "Make Grunge", "prompt": "生成一张Grunge Noise Alpha图，保持四方连续"}
+                {
+                    "name": "Edge Wear",
+                    "prompt": "为这张高度图添加边缘破损，保持四方连续",
+                },
+                {
+                    "name": "Make Grunge",
+                    "prompt": "生成一张Grunge Noise Alpha图，保持四方连续",
+                },
             ]
             self.save()
 
     def save(self):
         try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
+            with open(self.config_file, "w", encoding="utf-8") as f:
                 json.dump(self.presets, f, indent=4)
         except Exception as e:
             print(f"Error saving presets: {e}")
@@ -45,11 +52,8 @@ class PresetManager:
         for p in self.presets:
             if p["name"] == name:
                 return False, "Preset name already exists."
-        
-        self.presets.append({
-            "name": name,
-            "prompt": prompt
-        })
+
+        self.presets.append({"name": name, "prompt": prompt})
         self.save()
         return True, "Preset added."
 
@@ -64,7 +68,7 @@ class PresetManager:
     def rename_preset(self, old_name, new_name):
         if old_name == new_name:
             return True, "Name unchanged."
-            
+
         # Check if new name exists
         for p in self.presets:
             if p["name"] == new_name:

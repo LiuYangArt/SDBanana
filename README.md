@@ -61,7 +61,7 @@
    - 点击 `Generate Image`
    - 选中sd节点时把节点作为生图输入
    - 不选中节点时则只根据prompt 文生图
-<br>  
+<br>
 <img width="1845" height="1662" alt="image" src="https://github.com/user-attachments/assets/84bd147e-fd86-4f8c-932d-5cdf0202e056" />
 <br>
 <img width="2001" height="895" alt="image" src="https://github.com/user-attachments/assets/b9e519b9-bf82-4746-8296-f975f76a6f84" />
@@ -69,6 +69,3 @@
 ### 提示词参考
 [https://github.com/ZeroLu/awesome-nanobanana-pro](https://github.com/ZeroLu/awesome-nanobanana-pro)<br>
 [https://ai.google.dev/gemini-api/docs/image-generation#prompt-guide](https://ai.google.dev/gemini-api/docs/image-generation#prompt-guide)
-
-
-

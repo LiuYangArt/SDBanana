@@ -1,6 +1,5 @@
 import json
 import sys
-import os
 
 PLUGIN_INFO_FILE = "pluginInfo.json"
 

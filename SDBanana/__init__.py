@@ -33,7 +33,8 @@ def initializeSDPlugin():
     # 创建停靠窗口容器
     # newDockWidget 返回一个容器 widget，需要传入 identifier 和 title
     dock_widget = ui_mgr.newDockWidget(
-        "com.sdbanana.panel", "SD Banana - AI Image Generation"  # identifier  # title
+        "com.sdbanana.panel",
+        "SD Banana - AI Image Generation",  # identifier  # title
     )
 
     # 创建并设置插件面板到停靠窗口

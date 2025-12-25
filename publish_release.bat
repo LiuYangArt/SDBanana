@@ -82,13 +82,13 @@ if /i "%confirm%"=="y" (
     echo 正在提交 git commit ...
     git add pluginInfo.json version_manager.py
     git commit -m "chore(release): version !NEW_VERSION!"
-    
+
     echo 正在打标签 ...
     git tag v!NEW_VERSION!
-    
+
     echo 正在推送 ...
     git push && git push --tags
-    
+
     if !errorlevel! equ 0 (
         echo.
         echo ========================================================
@@ -106,4 +106,3 @@ if /i "%confirm%"=="y" (
 )
 
 pause
-
