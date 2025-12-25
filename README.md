@@ -69,3 +69,6 @@
 ### 提示词参考
 [https://github.com/ZeroLu/awesome-nanobanana-pro](https://github.com/ZeroLu/awesome-nanobanana-pro)<br>
 [https://ai.google.dev/gemini-api/docs/image-generation#prompt-guide](https://ai.google.dev/gemini-api/docs/image-generation#prompt-guide)
+
+ ## License
+ This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
