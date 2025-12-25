@@ -18,6 +18,7 @@ def set_version(new_version):
 
     with open(PLUGIN_INFO_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
+        f.write("\n")
 
 
 def parse_version(v_str):
