@@ -85,15 +85,16 @@ if /i "%confirm%"=="y" (
 
     if !errorlevel! neq 0 (
         echo.
-        echo [错误] 提交失败！可能是 pre-commit 钩子修改了文件 (如格式化)。
-        echo.
-        echo 请执行以下步骤：
-        echo 1. 检查更改 (git status / git diff)
-        echo 2. 将修改后的文件加入暂存区: git add .
-        echo 3. 再次运行此脚本，或手动提交: git commit -m "chore(release): version !NEW_VERSION!"
-        echo.
-        pause
-        goto :eof
+        echo [提示] pre-commit 钩子可能修改了文件，尝试重新提交...
+        git add -A
+        git commit -m "chore(release): version !NEW_VERSION!"
+
+        if !errorlevel! neq 0 (
+            echo.
+            echo [错误] 二次提交仍然失败，请手动检查 git status。
+            pause
+            goto :eof
+        )
     )
 
     echo 正在打标签 ...
