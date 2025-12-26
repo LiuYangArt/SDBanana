@@ -22,13 +22,13 @@ jobs:
           ZIP_NAME="SDBanana_${VERSION}.zip"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
-          # Create staging directory structure
-          mkdir -p build_staging/SDBanana
+          # Create staging directory structure (SDBanana/SDBanana/ for code)
+          mkdir -p build_staging/SDBanana/SDBanana
 
-          # Copy plugin code from SDBanana/ subdirectory
-          cp -r SDBanana/* build_staging/SDBanana/
+          # Copy plugin code to nested SDBanana/SDBanana/
+          cp -r SDBanana/* build_staging/SDBanana/SDBanana/
 
-          # Copy root-level plugin files
+          # Copy root-level files to outer SDBanana/
           cp pluginInfo.json build_staging/SDBanana/
           cp README.md build_staging/SDBanana/ 2>/dev/null || true
           cp LICENSE build_staging/SDBanana/ 2>/dev/null || true
